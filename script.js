@@ -9,10 +9,18 @@ let config = {
 let gameState = {
     target: 0,
     availableNumbers: [],
-    currentValue: null,
-    pendingOperator: null,
+    // Estado cuadro Principal
+    mainValue: null,
+    mainOp: null,
+    mainLog: "",
+    // Estado cuadro Auxiliar
+    auxValue: null,
+    auxOp: null,
+    auxLog: "",
+    // Selección activa ('main' o 'aux')
+    activeTarget: 'main',
+    
     historyStack: [],
-    expressionLog: "",
     timeLeft: 0,
     timerInterval: null,
     distSalida: 50,
@@ -28,6 +36,13 @@ const timerDurationGroup = document.getElementById('timer-duration-group');
 
 timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
+});
+
+// Selector de opción (Radio buttons)
+document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        gameState.activeTarget = e.target.value;
+    });
 });
 
 startGameBtn.addEventListener('click', () => {
@@ -54,10 +69,7 @@ startGameBtn.addEventListener('click', () => {
 
 function initTurn() {
     gameState.isEvaluating = false;
-    gameState.currentValue = null;
-    gameState.pendingOperator = null;
-    gameState.historyStack = [];
-    gameState.expressionLog = "";
+    resetCalculators();
     document.getElementById('result-feedback').textContent = '';
 
     const minTarget = config.maxTarget === 999 ? 100 : 10;
@@ -78,7 +90,7 @@ function initTurn() {
         gameState.availableNumbers.push({ id: i, value: num, used: false });
     }
 
-    updateDisplay();
+    updateDisplays();
     renderNumbersGrid();
 
     if (config.timerEnabled) {
@@ -99,6 +111,16 @@ function initTurn() {
     } else {
         document.getElementById('timer-display').style.display = 'none';
     }
+}
+
+function resetCalculators() {
+    gameState.mainValue = null;
+    gameState.mainOp = null;
+    gameState.mainLog = "";
+    gameState.auxValue = null;
+    gameState.auxOp = null;
+    gameState.auxLog = "";
+    gameState.historyStack = [];
 }
 
 function renderNumbersGrid() {
@@ -124,121 +146,170 @@ operatorsGrid.forEach(btn => {
 
 function handleNumberClick(numObj) {
     if (gameState.isEvaluating) return;
+    const targetBox = gameState.activeTarget; // 'main' o 'aux'
 
-    // Guardar estado previo para deshacer
     gameState.historyStack.push({
         type: 'num',
+        box: targetBox,
         numObj: numObj,
-        prevCurrentValue: gameState.currentValue,
-        prevPendingOp: gameState.pendingOperator,
-        prevLog: gameState.expressionLog
+        prevMainVal: gameState.mainValue, prevMainOp: gameState.mainOp, prevMainLog: gameState.mainLog,
+        prevAuxVal: gameState.auxValue, prevAuxOp: gameState.auxOp, prevAuxLog: gameState.auxLog
     });
 
     numObj.used = true;
 
-    if (gameState.currentValue === null) {
-        // Primer número seleccionado
-        gameState.currentValue = numObj.value;
-        gameState.expressionLog = `${numObj.value}`;
-    } else if (gameState.pendingOperator !== null) {
-        // Ya había un operador pendiente, aplicar operación acumulativa
-        let opSymbol = gameState.pendingOperator;
-        let a = gameState.currentValue;
-        let b = numObj.value;
-        let res = 0;
-
-        if (opSymbol === '+') res = a + b;
-        else if (opSymbol === '-') res = a - b;
-        else if (opSymbol === '*') res = a * b;
-        else if (opSymbol === '/') {
-            if (b === 0 || a % b !== 0) {
-                alert("Operación inválida (división no exactas o entre cero)");
-                numObj.used = false;
-                gameState.historyStack.pop();
-                return;
-            }
-            res = a / b;
+    if (targetBox === 'main') {
+        if (gameState.mainValue === null) {
+            gameState.mainValue = numObj.value;
+            gameState.mainLog = `${numObj.value}`;
+        } else if (gameState.mainOp !== null) {
+            let res = computeOp(gameState.mainValue, gameState.mainOp, numObj.value);
+            if (res === null) { undoLastAction(); return; }
+            gameState.mainValue = res;
+            gameState.mainLog += ` ${gameState.mainOp === '*' ? '×' : gameState.mainOp === '/' ? '÷' : gameState.mainOp} ${numObj.value}`;
+            gameState.mainOp = null;
+        } else {
+            undoLastAction(); return;
         }
-
-        gameState.currentValue = res;
-        gameState.expressionLog += ` ${opSymbol === '*' ? '×' : opSymbol === '/' ? '÷' : opSymbol} ${b}`;
-        gameState.pendingOperator = null;
     } else {
-        // Seleccionó número sin operador previo, no permitido en acumulativo estricto
-        numObj.used = false;
-        gameState.historyStack.pop();
-        return;
+        // Auxiliar
+        if (gameState.auxValue === null) {
+            gameState.auxValue = numObj.value;
+            gameState.auxLog = `${numObj.value}`;
+        } else if (gameState.auxOp !== null) {
+            let res = computeOp(gameState.auxValue, gameState.auxOp, numObj.value);
+            if (res === null) { undoLastAction(); return; }
+            gameState.auxValue = res;
+            gameState.auxLog += ` ${gameState.auxOp === '*' ? '×' : gameState.auxOp === '/' ? '÷' : gameState.auxOp} ${numObj.value}`;
+            gameState.auxOp = null;
+        } else {
+            undoLastAction(); return;
+        }
     }
 
     renderNumbersGrid();
-    updateDisplay();
+    updateDisplays();
 }
 
 function handleOperatorClick(op) {
     if (gameState.isEvaluating) return;
+    if (op === '=') { evaluateFinalResult(); return; }
 
-    if (op === '=') {
-        evaluateFinalResult();
-        return;
-    }
-
-    if (gameState.currentValue === null) return; // No se puede poner operador sin número previo
+    const targetBox = gameState.activeTarget;
+    let currentVal = targetBox === 'main' ? gameState.mainValue : gameState.auxValue;
+    if (currentVal === null) return;
 
     gameState.historyStack.push({
         type: 'op',
+        box: targetBox,
         op: op,
-        prevPendingOp: gameState.pendingOperator,
-        prevLog: gameState.expressionLog
+        prevMainOp: gameState.mainOp, prevMainLog: gameState.mainLog,
+        prevAuxOp: gameState.auxOp, prevAuxLog: gameState.auxLog
     });
 
-    gameState.pendingOperator = op;
     let visualOp = op === '*' ? '×' : op === '/' ? '÷' : op;
-    gameState.expressionLog += ` ${visualOp}`;
-    updateDisplay();
+    if (targetBox === 'main') {
+        gameState.mainOp = op;
+        gameState.mainLog += ` ${visualOp}`;
+    } else {
+        gameState.auxOp = op;
+        gameState.auxLog += ` ${visualOp}`;
+    }
+    updateDisplays();
 }
 
-function updateDisplay() {
-    const display = document.getElementById('current-expression');
-    if (gameState.expressionLog === "") {
-        display.textContent = 'Selecciona una ficha numérica...';
-    } else {
-        let text = gameState.expressionLog;
-        if (gameState.currentValue !== null) {
-            text += ` = [${gameState.currentValue}]`;
+function computeOp(a, op, b) {
+    let res = 0;
+    if (op === '+') res = a + b;
+    else if (op === '-') res = a - b;
+    else if (op === '*') res = a * b;
+    else if (op === '/') {
+        if (b === 0 || a % b !== 0) {
+            alert("Operación inválida (división no exacta o entre cero)");
+            return null;
         }
-        display.textContent = text;
+        res = a / b;
+    }
+    return res;
+}
+
+// BOTÓN SUBIR AUXILIAR AL PRINCIPAL
+document.getElementById('btn-upload-aux').addEventListener('click', () => {
+    if (gameState.isEvaluating || gameState.auxValue === null) return;
+    
+    // Al subir el auxiliar al principal, el valor calculado del auxiliar se convierte en la base del principal
+    gameState.mainValue = gameState.auxValue;
+    gameState.mainLog = `(${gameState.auxLog})`;
+    gameState.mainOp = null;
+    
+    // Limpiar auxiliar tras subirlo
+    gameState.auxValue = null;
+    gameState.auxOp = null;
+    gameState.auxLog = "";
+
+    // Cambiar automáticamente la selección activa al Principal
+    document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
+    gameState.activeTarget = 'main';
+
+    updateDisplays();
+});
+
+function updateDisplays() {
+    const mainDisp = document.getElementById('current-expression');
+    const auxDisp = document.getElementById('aux-expression');
+
+    if (gameState.mainLog === "") {
+        mainDisp.textContent = 'Selecciona ficha o número...';
+    } else {
+        let text = gameState.mainLog;
+        if (gameState.mainValue !== null) text += ` = [${gameState.mainValue}]`;
+        mainDisp.textContent = text;
+    }
+
+    if (gameState.auxLog === "") {
+        auxDisp.textContent = 'Vacío (usa el selector para operar aquí)';
+    } else {
+        let text = gameState.auxLog;
+        if (gameState.auxValue !== null) text += ` = [${gameState.auxValue}]`;
+        auxDisp.textContent = text;
     }
 }
 
 document.getElementById('btn-clear').addEventListener('click', () => {
     if (gameState.isEvaluating) return;
     gameState.availableNumbers.forEach(n => n.used = false);
-    gameState.currentValue = null;
-    gameState.pendingOperator = null;
-    gameState.historyStack = [];
-    gameState.expressionLog = "";
+    resetCalculators();
     renderNumbersGrid();
-    updateDisplay();
+    updateDisplays();
     document.getElementById('result-feedback').textContent = '';
 });
 
+function undoLastAction() {
+    if (gameState.historyStack.length === 0) return;
+    const last = gameState.historyStack.pop();
+
+    if (last.type === 'num') {
+        last.numObj.used = false;
+        gameState.mainValue = last.prevMainVal;
+        gameState.mainOp = last.prevMainOp;
+        gameState.mainLog = last.prevMainLog;
+        gameState.auxValue = last.prevAuxVal;
+        gameState.auxOp = last.prevAuxOp;
+        gameState.auxLog = last.prevAuxLog;
+    } else if (last.type === 'op') {
+        gameState.mainOp = last.prevMainOp;
+        gameState.mainLog = last.prevMainLog;
+        gameState.auxOp = last.prevAuxOp;
+        gameState.auxLog = last.prevAuxLog;
+    }
+    renderNumbersGrid();
+    updateDisplays();
+}
+
 if (config.allowUndo) {
     document.getElementById('btn-undo').addEventListener('click', () => {
-        if (gameState.isEvaluating || gameState.historyStack.length === 0) return;
-        const lastAction = gameState.historyStack.pop();
-
-        if (lastAction.type === 'num') {
-            lastAction.numObj.used = false;
-            gameState.currentValue = lastAction.prevCurrentValue;
-            gameState.pendingOperator = lastAction.prevPendingOp;
-            gameState.expressionLog = lastAction.prevLog;
-        } else if (lastAction.type === 'op') {
-            gameState.pendingOperator = lastAction.prevPendingOp;
-            gameState.expressionLog = lastAction.prevLog;
-        }
-
-        renderNumbersGrid();
-        updateDisplay();
+        if (gameState.isEvaluating) return;
+        undoLastAction();
     });
 }
 
@@ -247,18 +318,18 @@ document.getElementById('btn-submit').addEventListener('click', () => {
 });
 
 function evaluateFinalResult() {
-    if (gameState.isEvaluating || gameState.currentValue === null) return;
+    if (gameState.isEvaluating || gameState.mainValue === null) return;
     gameState.isEvaluating = true;
     if (config.timerEnabled) clearInterval(gameState.timerInterval);
 
-    let resultado = gameState.currentValue;
+    let resultado = gameState.mainValue;
     let diferencia = Math.abs(resultado - gameState.target);
     let feedback = document.getElementById('result-feedback');
 
     if (diferencia === 0) {
         gameState.distSalida -= 6;
         feedback.style.color = '#00b37e';
-        feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros hacia la salida!`;
+        feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros!`;
     } else if (diferencia <= 5) {
         gameState.distSalida -= 3;
         feedback.style.color = '#00b37e';
@@ -289,7 +360,6 @@ function evaluateFinalResult() {
         return;
     }
 
-    // Avanzar de turno a los 3 segundos de forma infalible aciertes o falles
     setTimeout(() => {
         initTurn();
     }, 3000);
