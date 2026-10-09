@@ -1,6 +1,6 @@
 body {
-    background-color: #121214;
-    color: #e1e1e6;
+    background-color: #0f1015;
+    color: #f4f4f5;
     font-family: 'Courier New', Courier, monospace;
     display: flex;
     justify-content: center;
@@ -10,12 +10,12 @@ body {
 }
 
 .game-container {
-    background-color: #202024;
-    border: 2px solid #323238;
-    border-radius: 8px;
-    padding: 1.5rem;
-    width: 460px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    background-color: #181920;
+    border: 2px solid #3f3f46;
+    border-radius: 12px;
+    padding: 1.8rem;
+    width: 480px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
 }
 
 .screen {
@@ -28,7 +28,7 @@ body {
 
 h1, h2 {
     text-align: center;
-    color: #fba94c;
+    color: #fb923c; /* Naranja brillante */
 }
 
 .config-group {
@@ -39,15 +39,17 @@ h1, h2 {
 }
 
 .config-group label {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    color: #e4e4e7;
 }
 
 .config-group select, .config-group input[type="number"] {
-    background: #121214;
-    color: #fff;
-    border: 1px solid #424248;
-    padding: 5px;
-    border-radius: 4px;
+    background: #27272a;
+    color: #ffffff;
+    border: 1px solid #71717a;
+    padding: 6px;
+    border-radius: 6px;
+    font-weight: bold;
 }
 
 button {
@@ -55,125 +57,135 @@ button {
     font-family: inherit;
     font-weight: bold;
     border: none;
-    border-radius: 4px;
-    padding: 10px;
-    transition: filter 0.2s;
+    border-radius: 6px;
+    padding: 12px;
+    transition: all 0.2s ease;
 }
 
 button:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.25);
+    transform: translateY(-1px);
 }
 
 .btn-primary {
-    background-color: #fba94c;
-    color: #121214;
+    background-color: #f97316; /* Naranja fuego vivo */
+    color: #ffffff;
     width: 100%;
-    font-size: 1rem;
+    font-size: 1.05rem;
     margin-top: 1rem;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
 
 .game-header {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #323238;
-    padding-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 1.2rem;
+    border-bottom: 2px solid #3f3f46;
+    padding-bottom: 0.6rem;
+    color: #e4e4e7;
 }
 
-.danger {
-    color: #f75a68;
+.stats.danger {
+    color: #ef4444; /* Rojo brillante muy visible */
 }
 
 .timer {
-    color: #00b37e;
+    color: #22c55e; /* Verde brillante */
 }
 
 .target-container {
     text-align: center;
-    background: #121214;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #323238;
-    margin-bottom: 0.8rem;
+    background: #27272a;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #52525b;
+    margin-bottom: 1rem;
+}
+
+.target-container span {
+    color: #d4d4d8;
+    font-size: 0.9rem;
 }
 
 .target-container h2 {
-    margin: 3px 0 0 0;
-    font-size: 2.2rem;
-    color: #00b37e;
-    letter-spacing: 2px;
+    margin: 5px 0 0 0;
+    font-size: 2.6rem;
+    color: #4ade80; /* Verde esmeralda súper vivo para el objetivo */
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
 }
 
 .mode-selector {
     display: flex;
     justify-content: space-around;
-    background: #18181b;
-    padding: 6px;
-    border-radius: 4px;
-    margin-bottom: 0.8rem;
-    font-size: 0.85rem;
-    border: 1px solid #2d2d30;
+    background: #27272a;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    border: 1px solid #52525b;
 }
 
 .mode-selector label {
     cursor: pointer;
-    color: #a1a1aa;
-}
-
-.mode-selector input[type="radio"]:checked + span,
-.mode-selector label:has(input:checked) {
-    color: #fba94c;
+    color: #d4d4d8;
     font-weight: bold;
 }
 
+.mode-selector label:has(input:checked) {
+    color: #fb923c; /* Resaltado activo en naranja vivo */
+}
+
 .expression-container {
-    background: #121214;
-    min-height: 35px;
-    border: 1px solid #424248;
-    border-radius: 4px;
+    background: #09090b;
+    min-height: 42px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
-    padding: 5px 10px;
-    margin-bottom: 0.5rem;
-    font-size: 0.95rem;
+    padding: 8px 12px;
+    margin-bottom: 0.6rem;
+    font-size: 1.1rem;
     word-break: break-all;
+    font-weight: bold;
 }
 
 .main-box {
-    border-color: #fba94c;
+    border: 2px solid #fb923c;
+    color: #fed7aa; /* Texto principal en tono crema/naranja muy claro */
 }
 
 .aux-box {
-    border-style: dashed;
-    border-color: #52525b;
-    color: #a1a1aa;
+    border: 2px dashed #a1a1aa;
+    color: #e4e4e7;
 }
 
 .box-label {
     font-size: 0.75rem;
     font-weight: bold;
-    margin-right: 8px;
-    color: #71717a;
+    margin-right: 10px;
+    color: #a1a1aa;
     text-transform: uppercase;
 }
 
 .aux-actions {
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
 }
 
 .btn-info {
-    background-color: #3b82f6;
-    color: #fff;
+    background-color: #3b82f6; /* Azul eléctrico vivo */
+    color: #ffffff;
     width: 100%;
-    font-size: 0.85rem;
-    padding: 6px;
+    font-size: 0.9rem;
+    padding: 8px;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .numbers-grid, .operators-grid, .actions-grid {
     display: grid;
-    gap: 6px;
-    margin-bottom: 0.8rem;
+    gap: 8px;
+    margin-bottom: 1rem;
 }
 
 .numbers-grid {
@@ -189,46 +201,56 @@ button:hover {
 }
 
 .btn-num {
-    background-color: #29292e;
-    color: #e1e1e6;
-    border: 1px solid #424248;
-    font-size: 1.1rem;
-    padding: 10px;
+    background-color: #3f3f46; /* Gris claro con mucho contraste */
+    color: #ffffff; /* Números en blanco puro para máxima legibilidad */
+    border: 1px solid #71717a;
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 14px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .btn-num:disabled {
-    opacity: 0.3;
+    opacity: 0.25;
+    background-color: #27272a;
     cursor: not-allowed;
 }
 
 .btn-op {
-    background-color: #323238;
-    color: #fba94c;
-    font-size: 1.1rem;
-    padding: 8px 0;
+    background-color: #27272a;
+    color: #fb923c; /* Operadores en naranja vivo */
+    border: 1px solid #52525b;
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 10px 0;
 }
 
 .btn-equals {
-    background-color: #fba94c;
-    color: #121214;
+    background-color: #fb923c;
+    color: #181920;
+    font-weight: 900;
 }
 
 .btn-secondary {
-    background-color: #323238;
-    color: #c4c4cc;
-    font-size: 0.9rem;
+    background-color: #3f3f46;
+    color: #f4f4f5;
+    font-size: 0.95rem;
+    font-weight: bold;
 }
 
 .btn-success {
-    background-color: #00b37e;
-    color: #fff;
+    background-color: #16a34a; /* Verde brillante de éxito */
+    color: #ffffff;
     grid-column: span 2;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
 }
 
 .feedback {
     text-align: center;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    min-height: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-top: 10px;
+    min-height: 25px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
