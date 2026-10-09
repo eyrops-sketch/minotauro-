@@ -32,10 +32,9 @@ h1, h2 {
     margin: 10px 0;
 }
 
+/* CONTENEDOR MULTIMEDIA BASE */
 .media-box {
-    width: 100%;
-    height: 180px;
-    background-color: #000;
+    background-color: #000000;
     border-radius: 8px;
     border: 2px solid #52525b;
     overflow: hidden;
@@ -48,18 +47,76 @@ h1, h2 {
 .media-box img, .media-box video {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Evita que se recorte la imagen */
-    background-color: #000;
+    object-fit: cover;
 }
 
+/* ALTURA PARA LA PORTADA DEL MENÚ PRINCIPAL */
+.menu-media {
+    width: 100%;
+    height: 180px;
+}
+
+/* ALTURA AMPLIADA PARA LAS ILUSTRACIONES DE LOS DESAFÍOS */
+.summary-media {
+    width: 100%;
+    height: 260px;
+    border: 2px solid #fb923c;
+    box-shadow: 0 0 15px rgba(251, 146, 60, 0.2);
+}
+
+/* PANTALLA DE RESUMEN DE RONDA ESTILIZADA */
+#round-summary-screen h2 {
+    color: #38bdf8;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+}
 
 .summary-box {
     background-color: #1c1e29;
-    border: 1px solid #52525b;
+    border: 2px solid #52525b;
     border-radius: 8px;
-    padding: 12px;
+    padding: 16px;
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.6;
+    color: #e4e4e7;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.summary-box p {
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* COLORES DESTACADOS PARA LAS MÉTRICAS DEL RESUMEN */
+#summary-turns {
+    color: #38bdf8;
+    font-weight: 900;
+}
+
+#summary-diff {
+    color: #facc15;
+    font-weight: 900;
+}
+
+#summary-val {
+    color: #4ade80;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+#summary-dist-salida {
+    color: #4ade80;
+    font-weight: 900;
+    font-size: 1.1rem;
+}
+
+#summary-dist-minotauro {
+    color: #f87171;
+    font-weight: 900;
+    font-size: 1.1rem;
 }
 
 .config-group {
