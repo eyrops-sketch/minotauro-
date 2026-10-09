@@ -9,8 +9,14 @@
 <body>
 
     <div class="game-container">
-        <!-- PANTALLA DE CONFIGURACIÓN -->
+        <!-- PANTALLA DE CONFIGURACIÓN Y PORTADA MULTIMEDIA -->
         <div id="config-screen" class="screen active">
+            <!-- CONTENEDOR MULTIMEDIA (Imagen inicial y Vídeo de transición) -->
+            <div id="media-container" class="media-box">
+                <img id="cover-image" src="multimedia/00_portada.jpg" alt="Portada Minotauro">
+                <video id="intro-video" src="multimedia/min_00.mp4" style="display: none;" preload="auto"></video>
+            </div>
+
             <h1>Laberinto del Minotauro</h1>
             <h2>Configuración de la Partida</h2>
             
@@ -32,7 +38,6 @@
                 </select>
             </div>
 
-            <!-- NUEVO CHECK DE DIFICULTAD -->
             <div class="config-group">
                 <label for="solvable-target">Forzar número con solución exacta:</label>
                 <input type="checkbox" id="solvable-target" checked>
@@ -70,7 +75,6 @@
                     <h2 id="target-number">000</h2>
                 </div>
 
-                <!-- SELECTOR DE MODO DINÁMICO -->
                 <div class="mode-selector">
                     <label id="label-main" class="active-mode-main">
                         <input type="radio" name="calc-mode" value="main" checked> Cuadro Principal
@@ -80,13 +84,11 @@
                     </label>
                 </div>
 
-                <!-- CUADRO GENERAL / PRINCIPAL -->
                 <div class="expression-container main-box">
                     <span class="box-label">Principal:</span>
                     <div id="current-expression">Selecciona ficha o número...</div>
                 </div>
 
-                <!-- CUADRO AUXILIAR / INTERMEDIO -->
                 <div class="expression-container aux-box">
                     <span class="box-label">Auxiliar:</span>
                     <div id="aux-expression">Vacío (usa el selector para operar aquí)</div>
@@ -115,7 +117,6 @@
                 
                 <div id="result-feedback" class="feedback"></div>
 
-                <!-- BOTÓN DE REJUGAR -->
                 <div id="game-over-container" style="display: none; margin-top: 15px;">
                     <button id="btn-restart" class="btn-primary" style="background-color: #38bdf8; color: #090a0f;">🔄 Volver a Jugar</button>
                 </div>
