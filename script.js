@@ -9,15 +9,14 @@ let config = {
 let gameState = {
     target: 0,
     availableNumbers: [],
-    // Estado cuadro Principal
+    // Cuadro Principal
     mainValue: null,
     mainOp: null,
     mainLog: "",
-    // Estado cuadro Auxiliar
+    // Cuadro Auxiliar
     auxValue: null,
     auxOp: null,
     auxLog: "",
-    // Selección activa ('main' o 'aux')
     activeTarget: 'main',
     
     historyStack: [],
@@ -38,10 +37,20 @@ timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
 });
 
-// Selector de opción (Radio buttons)
+// Control dinámico del color del selector de modo
 document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         gameState.activeTarget = e.target.value;
+        const labelMain = document.getElementById('label-main');
+        const labelAux = document.getElementById('label-aux');
+        
+        if (gameState.activeTarget === 'main') {
+            labelMain.classList.add('active-mode-main');
+            labelAux.classList.remove('active-mode-aux');
+        } else {
+            labelAux.classList.add('active-mode-aux');
+            labelMain.classList.remove('active-mode-main');
+        }
     });
 });
 
@@ -166,7 +175,7 @@ function handleNumberClick(numObj) {
             let res = computeOp(gameState.mainValue, gameState.mainOp, numObj.value);
             if (res === null) { undoLastAction(); return; }
             gameState.mainValue = res;
-            gameState.mainLog += ` ${gameState.mainOp === '*' ? '×' : gameState.mainOp === '/' ? '÷' : gameState.mainOp} ${numObj.value}`;
+            gameState.mainLog += ` ${numObj.value}`; // Evita duplicar el operador visualmente
             gameState.mainOp = null;
         } else {
             undoLastAction(); return;
@@ -179,7 +188,7 @@ function handleNumberClick(numObj) {
             let res = computeOp(gameState.auxValue, gameState.auxOp, numObj.value);
             if (res === null) { undoLastAction(); return; }
             gameState.auxValue = res;
-            gameState.auxLog += ` ${gameState.auxOp === '*' ? '×' : gameState.auxOp === '/' ? '÷' : gameState.auxOp} ${numObj.value}`;
+            gameState.auxLog += ` ${numObj.value}`; // Evita duplicar el operador visualmente
             gameState.auxOp = null;
         } else {
             undoLastAction(); return;
@@ -192,11 +201,21 @@ function handleNumberClick(numObj) {
 
 function handleOperatorClick(op) {
     if (gameState.isEvaluating) return;
-    if (op === '=') { evaluateFinalResult(); return; }
 
     const targetBox = gameState.activeTarget;
     let currentVal = targetBox === 'main' ? gameState.mainValue : gameState.auxValue;
     if (currentVal === null) return;
+
+    // EL BOTÓN '=' AHORA REALIZA EL CÁLCULO PARCIAL (EVALUACIÓN DEL BLOQUE ACTIVO)
+    if (op === '=') {
+        if (targetBox === 'main') {
+            gameState.mainLog += ` = [${gameState.mainValue}]`;
+        } else {
+            gameState.auxLog += ` = [${gameState.auxValue}]`;
+        }
+        updateDisplays();
+        return;
+    }
 
     gameState.historyStack.push({
         type: 'op',
@@ -232,35 +251,32 @@ function computeOp(a, op, b) {
     return res;
 }
 
-// BOTÓN SUBIR AUXILIAR AL PRINCIPAL (CONSERVANDO MEMORIA Y PERMITIENDO SEGUIR OPERANDO)
+// BOTÓN SUBIR AUXILIAR AL PRINCIPAL
 document.getElementById('btn-upload-aux').addEventListener('click', () => {
     if (gameState.isEvaluating || gameState.auxValue === null) return;
 
-    // Si el cuadro principal está vacío, el auxiliar pasa a ser el valor principal directamente
     if (gameState.mainValue === null) {
         gameState.mainValue = gameState.auxValue;
         gameState.mainLog = `(${gameState.auxLog})`;
     } else if (gameState.mainOp !== null) {
-        // Si el principal estaba esperando un operador, aplicamos el resultado auxiliar directamente
         let res = computeOp(gameState.mainValue, gameState.mainOp, gameState.auxValue);
         if (res === null) return;
         gameState.mainValue = res;
         gameState.mainLog += ` (${gameState.auxLog})`;
         gameState.mainOp = null;
     } else {
-        // Si el principal ya tenía un valor completo sin operador, alertamos o exigimos operador previo
         alert("Selecciona un operador (+, -, ×, ÷) en el Cuadro Principal antes de subir el valor auxiliar.");
         return;
     }
     
-    // Limpiar el bloc auxiliar tras subir su valor con éxito
     gameState.auxValue = null;
     gameState.auxOp = null;
     gameState.auxLog = "";
 
-    // Volver a enfocar automáticamente en el Cuadro Principal
     document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
     gameState.activeTarget = 'main';
+    document.getElementById('label-main').classList.add('active-mode-main');
+    document.getElementById('label-aux').classList.remove('active-mode-aux');
 
     updateDisplays();
 });
@@ -273,7 +289,7 @@ function updateDisplays() {
         mainDisp.textContent = 'Selecciona ficha o número...';
     } else {
         let text = gameState.mainLog;
-        if (gameState.mainValue !== null) text += ` = [${gameState.mainValue}]`;
+        if (gameState.mainValue !== null && !text.includes('=')) text += ` = [${gameState.mainValue}]`;
         mainDisp.textContent = text;
     }
 
@@ -281,7 +297,7 @@ function updateDisplays() {
         auxDisp.textContent = 'Vacío (usa el selector para operar aquí)';
     } else {
         let text = gameState.auxLog;
-        if (gameState.auxValue !== null) text += ` = [${gameState.auxValue}]`;
+        if (gameState.auxValue !== null && !text.includes('=')) text += ` = [${gameState.auxValue}]`;
         auxDisp.textContent = text;
     }
 }
@@ -324,6 +340,7 @@ if (config.allowUndo) {
     });
 }
 
+// BOTÓN VERDE DE COMPROBACIÓN FINAL CONTRA EL OBJETIVO DEL LABERINTO
 document.getElementById('btn-submit').addEventListener('click', () => {
     evaluateFinalResult();
 });
@@ -339,19 +356,19 @@ function evaluateFinalResult() {
 
     if (diferencia === 0) {
         gameState.distSalida -= 6;
-        feedback.style.color = '#00b37e';
+        feedback.style.color = '#4ade80';
         feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros!`;
     } else if (diferencia <= 5) {
         gameState.distSalida -= 3;
-        feedback.style.color = '#00b37e';
+        feedback.style.color = '#4ade80';
         feedback.textContent = `¡Muy cerca! (${resultado}, dif: ${diferencia}). Avanzas 3 metros.`;
     } else if (diferencia <= 15) {
         gameState.distSalida -= 1;
-        feedback.style.color = '#fba94c';
+        feedback.style.color = '#fb923c';
         feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
     } else {
         gameState.distMinotauro -= 3;
-        feedback.style.color = '#f75a68';
+        feedback.style.color = '#f87171';
         feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro avanza 3 metros!`;
     }
 
@@ -360,13 +377,13 @@ function evaluateFinalResult() {
     updateHUD();
 
     if (gameState.distSalida === 0) {
-        feedback.style.color = '#00b37e';
+        feedback.style.color = '#4ade80';
         feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
         return;
     }
 
     if (gameState.distMinotauro === 0) {
-        feedback.style.color = '#f75a68';
+        feedback.style.color = '#f87171';
         feedback.textContent = "¡El Minotauro te ha alcanzado!";
         return;
     }
@@ -379,7 +396,7 @@ function evaluateFinalResult() {
 function handleTimeOut() {
     gameState.isEvaluating = true;
     const feedback = document.getElementById('result-feedback');
-    feedback.style.color = '#f75a68';
+    feedback.style.color = '#f87171';
     feedback.textContent = "¡Se acabó el tiempo! El Minotauro avanza 4 metros hacia ti.";
     
     gameState.distMinotauro -= 4;
@@ -399,4 +416,4 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-}
+            }
