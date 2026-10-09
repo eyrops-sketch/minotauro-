@@ -76,7 +76,6 @@ button:hover {
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
 
-/* CABECERA RESALTADA TIPO TARJETA */
 .game-header-box {
     display: flex;
     justify-content: space-between;
@@ -91,15 +90,15 @@ button:hover {
 }
 
 .stat-item.exit {
-    color: #4ade80; /* Verde brillante muy visible */
+    color: #4ade80;
 }
 
 .stat-item.minotaur {
-    color: #f87171; /* Rojo fuego brillante */
+    color: #f87171;
 }
 
 .stat-item.timer {
-    color: #38bdf8; /* Azul claro para el tiempo */
+    color: #38bdf8;
 }
 
 .target-container {
@@ -124,7 +123,6 @@ button:hover {
     text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
 }
 
-/* SELECTOR DE MODO DINÁMICO */
 .mode-selector {
     display: flex;
     justify-content: space-around;
@@ -144,11 +142,11 @@ button:hover {
 }
 
 .active-mode-main {
-    color: #fb923c !important; /* Naranja vivo cuando se selecciona Principal */
+    color: #fb923c !important;
 }
 
 .active-mode-aux {
-    color: #38bdf8 !important; /* Azul vivo cuando se selecciona Auxiliar */
+    color: #38bdf8 !important;
 }
 
 .expression-container {
@@ -229,18 +227,22 @@ button:hover {
     cursor: not-allowed;
 }
 
+/* BOTONES DE OPERADORES AMPLIADOS Y MÁS VISIBLES */
 .btn-op {
     background-color: #27272a;
     color: #fb923c;
-    border: 1px solid #52525b;
-    font-size: 1.25rem;
-    font-weight: bold;
-    padding: 10px 0;
+    border: 2px solid #71717a;
+    font-size: 1.4rem;
+    font-weight: 900;
+    padding: 14px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .btn-equals {
-    background-color: #38bdf8; /* Azul distintivo para cálculo parcial '=' */
+    background-color: #38bdf8;
     color: #090a0f;
+    border: 2px solid #bae6fd;
+    font-size: 1.4rem;
     font-weight: 900;
 }
 
