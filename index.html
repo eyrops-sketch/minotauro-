@@ -32,6 +32,12 @@
                 </select>
             </div>
 
+            <!-- NUEVO CHECK DE DIFICULTAD -->
+            <div class="config-group">
+                <label for="solvable-target">Forzar número con solución exacta:</label>
+                <input type="checkbox" id="solvable-target" checked>
+            </div>
+
             <div class="config-group">
                 <label for="timer-enabled">¿Activar cronómetro?</label>
                 <input type="checkbox" id="timer-enabled" checked>
@@ -94,7 +100,6 @@
                     <!-- Fichas inyectadas por JS -->
                 </div>
 
-                <!-- OPERADORES (SIN BOTÓN IGUAL Y CON COLORES VIVOS) -->
                 <div class="operators-grid">
                     <button class="btn-op btn-plus" data-op="+">+</button>
                     <button class="btn-op btn-minus" data-op="-">-</button>
@@ -110,7 +115,7 @@
                 
                 <div id="result-feedback" class="feedback"></div>
 
-                <!-- BOTÓN DE REJUGAR (OCULTO HASTA EL FINAL) -->
+                <!-- BOTÓN DE REJUGAR -->
                 <div id="game-over-container" style="display: none; margin-top: 15px;">
                     <button id="btn-restart" class="btn-primary" style="background-color: #38bdf8; color: #090a0f;">🔄 Volver a Jugar</button>
                 </div>
