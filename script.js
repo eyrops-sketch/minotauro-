@@ -1,4 +1,3 @@
-// Estado global del juego parametrizable
 let config = {
     numCount: 6,
     maxTarget: 999,
@@ -10,7 +9,10 @@ let config = {
 let gameState = {
     target: 0,
     availableNumbers: [],
-    expressionTokens: [],
+    currentValue: null,
+    pendingOperator: null,
+    historyStack: [],
+    expressionLog: "",
     timeLeft: 0,
     timerInterval: null,
     distSalida: 50,
@@ -18,7 +20,6 @@ let gameState = {
     isEvaluating: false
 };
 
-// Elementos del DOM
 const configScreen = document.getElementById('config-screen');
 const gameScreen = document.getElementById('game-screen');
 const startGameBtn = document.getElementById('start-game-btn');
@@ -41,7 +42,6 @@ startGameBtn.addEventListener('click', () => {
         document.getElementById('btn-clear').style.gridColumn = 'span 2';
     }
 
-    // Inicializar distancias de la partida
     gameState.distSalida = 50;
     gameState.distMinotauro = 20;
     updateHUD();
@@ -54,6 +54,10 @@ startGameBtn.addEventListener('click', () => {
 
 function initTurn() {
     gameState.isEvaluating = false;
+    gameState.currentValue = null;
+    gameState.pendingOperator = null;
+    gameState.historyStack = [];
+    gameState.expressionLog = "";
     document.getElementById('result-feedback').textContent = '';
 
     const minTarget = config.maxTarget === 999 ? 100 : 10;
@@ -74,8 +78,7 @@ function initTurn() {
         gameState.availableNumbers.push({ id: i, value: num, used: false });
     }
 
-    gameState.expressionTokens = [];
-    updateExpressionDisplay();
+    updateDisplay();
     renderNumbersGrid();
 
     if (config.timerEnabled) {
@@ -107,7 +110,7 @@ function renderNumbersGrid() {
         btn.className = 'btn-num';
         btn.textContent = numObj.value;
         btn.disabled = numObj.used;
-        btn.addEventListener('click', () => selectNumber(numObj));
+        btn.addEventListener('click', () => handleNumberClick(numObj));
         grid.appendChild(btn);
     });
 }
@@ -115,138 +118,181 @@ function renderNumbersGrid() {
 const operatorsGrid = document.querySelectorAll('.btn-op');
 operatorsGrid.forEach(btn => {
     btn.addEventListener('click', () => {
-        selectOperator(btn.dataset.op);
+        handleOperatorClick(btn.dataset.op);
     });
 });
 
-function selectNumber(numObj) {
+function handleNumberClick(numObj) {
     if (gameState.isEvaluating) return;
+
+    // Guardar estado previo para deshacer
+    gameState.historyStack.push({
+        type: 'num',
+        numObj: numObj,
+        prevCurrentValue: gameState.currentValue,
+        prevPendingOp: gameState.pendingOperator,
+        prevLog: gameState.expressionLog
+    });
+
     numObj.used = true;
-    gameState.expressionTokens.push({ type: 'num', value: numObj.value, id: numObj.id });
-    renderNumbersGrid();
-    updateExpressionDisplay();
-}
 
-function selectOperator(op) {
-    if (gameState.isEvaluating) return;
-    const last = gameState.expressionTokens[gameState.expressionTokens.length - 1];
-    if (!last || last.type === 'op') return;
+    if (gameState.currentValue === null) {
+        // Primer número seleccionado
+        gameState.currentValue = numObj.value;
+        gameState.expressionLog = `${numObj.value}`;
+    } else if (gameState.pendingOperator !== null) {
+        // Ya había un operador pendiente, aplicar operación acumulativa
+        let opSymbol = gameState.pendingOperator;
+        let a = gameState.currentValue;
+        let b = numObj.value;
+        let res = 0;
 
-    gameState.expressionTokens.push({ type: 'op', value: op });
-    updateExpressionDisplay();
-}
+        if (opSymbol === '+') res = a + b;
+        else if (opSymbol === '-') res = a - b;
+        else if (opSymbol === '*') res = a * b;
+        else if (opSymbol === '/') {
+            if (b === 0 || a % b !== 0) {
+                alert("Operación inválida (división no exactas o entre cero)");
+                numObj.used = false;
+                gameState.historyStack.pop();
+                return;
+            }
+            res = a / b;
+        }
 
-function updateExpressionDisplay() {
-    const display = document.getElementById('current-expression');
-    if (gameState.expressionTokens.length === 0) {
-        display.textContent = 'Selecciona números y operaciones...';
+        gameState.currentValue = res;
+        gameState.expressionLog += ` ${opSymbol === '*' ? '×' : opSymbol === '/' ? '÷' : opSymbol} ${b}`;
+        gameState.pendingOperator = null;
+    } else {
+        // Seleccionó número sin operador previo, no permitido en acumulativo estricto
+        numObj.used = false;
+        gameState.historyStack.pop();
         return;
     }
-    
-    let text = gameState.expressionTokens.map(t => {
-        if (t.value === '*') return '×';
-        if (t.value === '/') return '÷';
-        return t.value;
-    }).join(' ');
 
-    display.textContent = text;
+    renderNumbersGrid();
+    updateDisplay();
+}
+
+function handleOperatorClick(op) {
+    if (gameState.isEvaluating) return;
+
+    if (op === '=') {
+        evaluateFinalResult();
+        return;
+    }
+
+    if (gameState.currentValue === null) return; // No se puede poner operador sin número previo
+
+    gameState.historyStack.push({
+        type: 'op',
+        op: op,
+        prevPendingOp: gameState.pendingOperator,
+        prevLog: gameState.expressionLog
+    });
+
+    gameState.pendingOperator = op;
+    let visualOp = op === '*' ? '×' : op === '/' ? '÷' : op;
+    gameState.expressionLog += ` ${visualOp}`;
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const display = document.getElementById('current-expression');
+    if (gameState.expressionLog === "") {
+        display.textContent = 'Selecciona una ficha numérica...';
+    } else {
+        let text = gameState.expressionLog;
+        if (gameState.currentValue !== null) {
+            text += ` = [${gameState.currentValue}]`;
+        }
+        display.textContent = text;
+    }
 }
 
 document.getElementById('btn-clear').addEventListener('click', () => {
     if (gameState.isEvaluating) return;
     gameState.availableNumbers.forEach(n => n.used = false);
-    gameState.expressionTokens = [];
+    gameState.currentValue = null;
+    gameState.pendingOperator = null;
+    gameState.historyStack = [];
+    gameState.expressionLog = "";
     renderNumbersGrid();
-    updateExpressionDisplay();
+    updateDisplay();
     document.getElementById('result-feedback').textContent = '';
 });
 
 if (config.allowUndo) {
     document.getElementById('btn-undo').addEventListener('click', () => {
-        if (gameState.isEvaluating || gameState.expressionTokens.length === 0) return;
-        const lastToken = gameState.expressionTokens.pop();
-        
-        if (lastToken.type === 'num') {
-            const numObj = gameState.availableNumbers.find(n => n.id === lastToken.id);
-            if (numObj) numObj.used = false;
+        if (gameState.isEvaluating || gameState.historyStack.length === 0) return;
+        const lastAction = gameState.historyStack.pop();
+
+        if (lastAction.type === 'num') {
+            lastAction.numObj.used = false;
+            gameState.currentValue = lastAction.prevCurrentValue;
+            gameState.pendingOperator = lastAction.prevPendingOp;
+            gameState.expressionLog = lastAction.prevLog;
+        } else if (lastAction.type === 'op') {
+            gameState.pendingOperator = lastAction.prevPendingOp;
+            gameState.expressionLog = lastAction.prevLog;
         }
+
         renderNumbersGrid();
-        updateExpressionDisplay();
+        updateDisplay();
     });
 }
 
 document.getElementById('btn-submit').addEventListener('click', () => {
-    evaluateExpression();
+    evaluateFinalResult();
 });
 
-function evaluateExpression() {
-    if (gameState.isEvaluating || gameState.expressionTokens.length === 0) return;
+function evaluateFinalResult() {
+    if (gameState.isEvaluating || gameState.currentValue === null) return;
     gameState.isEvaluating = true;
     if (config.timerEnabled) clearInterval(gameState.timerInterval);
 
-    let exprString = gameState.expressionTokens.map(t => t.value).join(' ');
+    let resultado = gameState.currentValue;
+    let diferencia = Math.abs(resultado - gameState.target);
+    let feedback = document.getElementById('result-feedback');
 
-    try {
-        let resultado = eval(exprString);
-        
-        if (isNaN(resultado) || !isFinite(resultado)) {
-            throw new Error("Operación inválida");
-        }
-
-        let diferencia = Math.abs(resultado - gameState.target);
-        let feedback = document.getElementById('result-feedback');
-
-        // Lógica de movimiento según aproximación
-        if (diferencia === 0) {
-            gameState.distSalida -= 6;
-            feedback.style.color = '#00b37e';
-            feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros hacia la salida!`;
-        } else if (diferencia <= 5) {
-            gameState.distSalida -= 3;
-            feedback.style.color = '#00b37e';
-            feedback.textContent = `¡Muy cerca! (${resultado}, dif: ${diferencia}). Avanzas 3 metros.`;
-        } else if (diferencia <= 15) {
-            gameState.distSalida -= 1;
-            feedback.style.color = '#fba94c';
-            feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
-        } else {
-            gameState.distMinotauro -= 3;
-            feedback.style.color = '#f75a68';
-            feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro acorta 3 metros!`;
-        }
-
-        // Asegurar límites lógicos
-        if (gameState.distSalida < 0) gameState.distSalida = 0;
-        if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
-        updateHUD();
-
-        // Comprobar fin de partida
-        if (gameState.distSalida === 0) {
-            feedback.style.color = '#00b37e';
-            feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
-            return; // Fin del juego
-        }
-
-        if (gameState.distMinotauro === 0) {
-            feedback.style.color = '#f75a68';
-            feedback.textContent = "¡El Minotauro te ha alcanzado! (Aquí se activará el combate táctico)";
-            return; // Fin o inicio de combate
-        }
-
-        // Continuar al siguiente turno tras 3 segundos
-        setTimeout(() => {
-            initTurn();
-        }, 3000);
-
-    } catch (e) {
-        gameState.isEvaluating = false;
-        if (config.timerEnabled) {
-            // Reactivar cronómetro si da error de expresión
-            // (Opcional según prefieras)
-        }
-        document.getElementById('result-feedback').style.color = '#f75a68';
-        document.getElementById('result-feedback').textContent = "Expresión matemática incorrecta o incompleta.";
+    if (diferencia === 0) {
+        gameState.distSalida -= 6;
+        feedback.style.color = '#00b37e';
+        feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros hacia la salida!`;
+    } else if (diferencia <= 5) {
+        gameState.distSalida -= 3;
+        feedback.style.color = '#00b37e';
+        feedback.textContent = `¡Muy cerca! (${resultado}, dif: ${diferencia}). Avanzas 3 metros.`;
+    } else if (diferencia <= 15) {
+        gameState.distSalida -= 1;
+        feedback.style.color = '#fba94c';
+        feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
+    } else {
+        gameState.distMinotauro -= 3;
+        feedback.style.color = '#f75a68';
+        feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro avanza 3 metros!`;
     }
+
+    if (gameState.distSalida < 0) gameState.distSalida = 0;
+    if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
+    updateHUD();
+
+    if (gameState.distSalida === 0) {
+        feedback.style.color = '#00b37e';
+        feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
+        return;
+    }
+
+    if (gameState.distMinotauro === 0) {
+        feedback.style.color = '#f75a68';
+        feedback.textContent = "¡El Minotauro te ha alcanzado!";
+        return;
+    }
+
+    // Avanzar de turno a los 3 segundos de forma infalible aciertes o falles
+    setTimeout(() => {
+        initTurn();
+    }, 3000);
 }
 
 function handleTimeOut() {
@@ -260,7 +306,7 @@ function handleTimeOut() {
     updateHUD();
 
     if (gameState.distMinotauro === 0) {
-        feedback.textContent = "¡El Minotauro te ha atrapado por agotamiento del tiempo!";
+        feedback.textContent = "¡El Minotauro te ha atrapado por tiempo!";
         return;
     }
 
