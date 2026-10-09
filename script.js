@@ -39,10 +39,8 @@ const timerDurationGroup = document.getElementById('timer-duration-group');
 const coverImage = document.getElementById('cover-image');
 const introVideo = document.getElementById('intro-video');
 
-// ARRAY TEMPORAL DINÁMICO
 let availableMinImages = ['min_01.jpg'];
 
-// FUNCIÓN PARA LEER EL DIRECTORIO AUTOMÁTICAMENTE DESDE GITHUB
 async function fetchMultimediaDirectory() {
     try {
         const response = await fetch('https://api.github.com/repos/eyrops-sketch/minotauro-/contents/multimedia');
@@ -56,10 +54,9 @@ async function fetchMultimediaDirectory() {
             
         if (fetchedImages.length > 0) {
             availableMinImages = fetchedImages;
-            console.log("Imágenes cargadas automáticamente:", availableMinImages);
         }
     } catch (error) {
-        console.log("Usando imágenes por defecto. Error de API:", error);
+        console.log("Usando imágenes por defecto.");
     }
 }
 
@@ -141,7 +138,8 @@ function initNewTurnWithImage() {
     const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
     const imgElement = document.getElementById('round-random-img');
     
-    imgElement.src = `multimedia/${randomImgName}`;
+    // Evitamos caché añadiendo un parámetro de tiempo aleatorio para que cargue siempre una nueva
+    imgElement.src = `multimedia/${randomImgName}?rand=${Math.random()}`;
     
     imgElement.onerror = function() {
         this.src = 'multimedia/00_portada.jpg';
@@ -273,6 +271,8 @@ operatorsGrid.forEach(btn => {
         handleOperatorClick(btn.dataset.op);
     });
 });
+
+
 function handleNumberClick(numObj) {
     if (gameState.isEvaluating || gameState.gameOver) return;
     const targetBox = gameState.activeTarget;
@@ -553,3 +553,4 @@ function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
 }
+    
