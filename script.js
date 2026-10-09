@@ -9,11 +9,9 @@ let config = {
 let gameState = {
     target: 0,
     availableNumbers: [],
-    // Cuadro Principal
     mainValue: null,
     mainOp: null,
     mainLog: "",
-    // Cuadro Auxiliar
     auxValue: null,
     auxOp: null,
     auxLog: "",
@@ -24,7 +22,8 @@ let gameState = {
     timerInterval: null,
     distSalida: 50,
     distMinotauro: 20,
-    isEvaluating: false
+    isEvaluating: false,
+    gameOver: false
 };
 
 const configScreen = document.getElementById('config-screen');
@@ -65,17 +64,27 @@ startGameBtn.addEventListener('click', () => {
         document.getElementById('btn-clear').style.gridColumn = 'span 2';
     }
 
-    gameState.distSalida = 50;
-    gameState.distMinotauro = 20;
-    updateHUD();
-
     configScreen.classList.remove('active');
     gameScreen.classList.add('active');
 
+    startNewGame();
+});
+
+function startNewGame() {
+    gameState.distSalida = 50;
+    gameState.distMinotauro = 20;
+    gameState.gameOver = false;
+    document.getElementById('game-over-container').style.display = 'none';
+    updateHUD();
     initTurn();
+}
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+    startNewGame();
 });
 
 function initTurn() {
+    if (gameState.gameOver) return;
     gameState.isEvaluating = false;
     resetCalculators();
     document.getElementById('result-feedback').textContent = '';
@@ -108,7 +117,7 @@ function initTurn() {
         
         clearInterval(gameState.timerInterval);
         gameState.timerInterval = setInterval(() => {
-            if (gameState.isEvaluating) return;
+            if (gameState.isEvaluating || gameState.gameOver) return;
             gameState.timeLeft--;
             document.getElementById('time-left').textContent = gameState.timeLeft;
             if (gameState.timeLeft <= 0) {
@@ -153,7 +162,7 @@ operatorsGrid.forEach(btn => {
 });
 
 function handleNumberClick(numObj) {
-    if (gameState.isEvaluating) return;
+    if (gameState.isEvaluating || gameState.gameOver) return;
     const targetBox = gameState.activeTarget;
 
     gameState.historyStack.push({
@@ -199,22 +208,11 @@ function handleNumberClick(numObj) {
 }
 
 function handleOperatorClick(op) {
-    if (gameState.isEvaluating) return;
+    if (gameState.isEvaluating || gameState.gameOver) return;
 
     const targetBox = gameState.activeTarget;
     let currentVal = targetBox === 'main' ? gameState.mainValue : gameState.auxValue;
     if (currentVal === null) return;
-
-    // Cálculo parcial del bloque activo
-    if (op === '=') {
-        if (targetBox === 'main') {
-            gameState.mainLog += ` = [${gameState.mainValue}]`;
-        } else {
-            gameState.auxLog += ` = [${gameState.auxValue}]`;
-        }
-        updateDisplays();
-        return;
-    }
 
     gameState.historyStack.push({
         type: 'op',
@@ -250,20 +248,16 @@ function computeOp(a, op, b) {
     return res;
 }
 
-// SUBIR AUXILIAR AL PRINCIPAL CON SINTAXIS LIMPIA Y CLARA (ej: 30 + 8)
 document.getElementById('btn-upload-aux').addEventListener('click', () => {
-    if (gameState.isEvaluating || gameState.auxValue === null) return;
+    if (gameState.isEvaluating || gameState.auxValue === null || gameState.gameOver) return;
 
     if (gameState.mainValue === null) {
-        // Si el principal está vacío, adopta directamente el valor y la expresión limpia
         gameState.mainValue = gameState.auxValue;
         gameState.mainLog = `${gameState.auxLog}`;
     } else if (gameState.mainOp !== null) {
-        // Si el principal tiene un operador pendiente (ej: "30 +"), añade limpiamente el número subido (ej: "8")
         let res = computeOp(gameState.mainValue, gameState.mainOp, gameState.auxValue);
         if (res === null) return;
         
-        // Limpiamos el log anterior quitando bloques feos y dejamos una sintaxis clara tipo "30 + 8"
         let cleanBaseLog = gameState.mainLog.split('=')[0].trim();
         gameState.mainLog = `${cleanBaseLog} ${gameState.mainOp === '*' ? '×' : gameState.mainOp === '/' ? '÷' : gameState.mainOp} ${gameState.auxValue}`;
         gameState.mainValue = res;
@@ -273,12 +267,10 @@ document.getElementById('btn-upload-aux').addEventListener('click', () => {
         return;
     }
     
-    // Limpiar auxiliar tras subirlo
     gameState.auxValue = null;
     gameState.auxOp = null;
     gameState.auxLog = "";
 
-    // Enfocar automáticamente el Cuadro Principal
     document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
     gameState.activeTarget = 'main';
     document.getElementById('label-main').classList.add('active-mode-main');
@@ -309,7 +301,7 @@ function updateDisplays() {
 }
 
 document.getElementById('btn-clear').addEventListener('click', () => {
-    if (gameState.isEvaluating) return;
+    if (gameState.isEvaluating || gameState.gameOver) return;
     gameState.availableNumbers.forEach(n => n.used = false);
     resetCalculators();
     renderNumbersGrid();
@@ -341,7 +333,7 @@ function undoLastAction() {
 
 if (config.allowUndo) {
     document.getElementById('btn-undo').addEventListener('click', () => {
-        if (gameState.isEvaluating) return;
+        if (gameState.isEvaluating || gameState.gameOver) return;
         undoLastAction();
     });
 }
@@ -351,7 +343,7 @@ document.getElementById('btn-submit').addEventListener('click', () => {
 });
 
 function evaluateFinalResult() {
-    if (gameState.isEvaluating || gameState.mainValue === null) return;
+    if (gameState.isEvaluating || gameState.mainValue === null || gameState.gameOver) return;
     gameState.isEvaluating = true;
     if (config.timerEnabled) clearInterval(gameState.timerInterval);
 
@@ -384,17 +376,21 @@ function evaluateFinalResult() {
     if (gameState.distSalida === 0) {
         feedback.style.color = '#4ade80';
         feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
+        gameState.gameOver = true;
+        document.getElementById('game-over-container').style.display = 'block';
         return;
     }
 
     if (gameState.distMinotauro === 0) {
         feedback.style.color = '#f87171';
         feedback.textContent = "¡El Minotauro te ha alcanzado!";
+        gameState.gameOver = true;
+        document.getElementById('game-over-container').style.display = 'block';
         return;
     }
 
     setTimeout(() => {
-        initTurn();
+        if (!gameState.gameOver) initTurn();
     }, 3000);
 }
 
@@ -410,11 +406,13 @@ function handleTimeOut() {
 
     if (gameState.distMinotauro === 0) {
         feedback.textContent = "¡El Minotauro te ha atrapado por tiempo!";
+        gameState.gameOver = true;
+        document.getElementById('game-over-container').style.display = 'block';
         return;
     }
 
     setTimeout(() => {
-        initTurn();
+        if (!gameState.gameOver) initTurn();
     }, 3000);
 }
 
