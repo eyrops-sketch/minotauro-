@@ -1,6 +1,7 @@
 let config = {
     numCount: 6,
     maxTarget: 999,
+    solvableTarget: true,
     timerEnabled: true,
     timerSeconds: 45,
     allowUndo: true
@@ -55,6 +56,7 @@ document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
 startGameBtn.addEventListener('click', () => {
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
+    config.solvableTarget = document.getElementById('solvable-target').checked;
     config.timerEnabled = timerEnabledCheckbox.checked;
     config.timerSeconds = parseInt(document.getElementById('timer-seconds').value);
     config.allowUndo = document.getElementById('allow-undo').checked;
@@ -90,13 +92,11 @@ function initTurn() {
     document.getElementById('result-feedback').textContent = '';
 
     const minTarget = config.maxTarget === 999 ? 100 : 10;
-    gameState.target = Math.floor(Math.random() * (config.maxTarget - minTarget + 1)) + minTarget;
-    document.getElementById('target-number').textContent = gameState.target;
-
-    gameState.availableNumbers = [];
     const poolPequenos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const poolGrandes = [25, 50, 75, 100];
 
+    // Generar fichas iniciales
+    let nums = [];
     for (let i = 0; i < config.numCount; i++) {
         let num;
         if (i === 0 && config.numCount >= 6) {
@@ -104,8 +104,20 @@ function initTurn() {
         } else {
             num = poolPequenos[Math.floor(Math.random() * poolPequenos.length)];
         }
-        gameState.availableNumbers.push({ id: i, value: num, used: false });
+        nums.push(num);
     }
+
+    if (config.solvableTarget) {
+        // Modo Forzado: Calculamos un objetivo resoluble combinando aleatoriamente algunos números de las fichas
+        gameState.target = generateSolvableTarget(nums, minTarget, config.maxTarget);
+    } else {
+        // Modo Pura Dificultad: Número completamente aleatorio dentro del rango
+        gameState.target = Math.floor(Math.random() * (config.maxTarget - minTarget + 1)) + minTarget;
+    }
+
+    document.getElementById('target-number').textContent = gameState.target;
+
+    gameState.availableNumbers = nums.map((val, idx) => ({ id: idx, value: val, used: false }));
 
     updateDisplays();
     renderNumbersGrid();
@@ -128,6 +140,35 @@ function initTurn() {
     } else {
         document.getElementById('timer-display').style.display = 'none';
     }
+}
+
+// Función auxiliar para calcular un objetivo que se sepa que se puede alcanzar matemáticamente
+function generateSolvableTarget(numbers, min, max) {
+    let pool = [...numbers];
+    let current = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+    
+    // Realizamos entre 2 y 4 operaciones válidas entre las fichas para asegurar un objetivo realista
+    let ops = ['+', '-', '*', '/'];
+    let steps = Math.min(3, pool.length);
+
+    for (let i = 0; i < steps; i++) {
+        let nextNum = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+        let op = ops[Math.floor(Math.random() * ops.length)];
+        
+        if (op === '+') current += nextNum;
+        else if (op === '-') current = Math.max(1, current - nextNum);
+        else if (op === '*') current *= nextNum;
+        else if (op === '/') {
+            if (nextNum > 0 && current % nextNum === 0) current /= nextNum;
+            else current += nextNum;
+        }
+    }
+
+    // Si se sale del rango establecido, generamos uno dentro del rango predeterminado por seguridad
+    if (current < min || current > max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    return current;
 }
 
 function resetCalculators() {
@@ -419,4 +460,4 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-}
+                }
