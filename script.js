@@ -146,7 +146,7 @@ operatorsGrid.forEach(btn => {
 
 function handleNumberClick(numObj) {
     if (gameState.isEvaluating) return;
-    const targetBox = gameState.activeTarget; // 'main' o 'aux'
+    const targetBox = gameState.activeTarget;
 
     gameState.historyStack.push({
         type: 'num',
@@ -172,7 +172,6 @@ function handleNumberClick(numObj) {
             undoLastAction(); return;
         }
     } else {
-        // Auxiliar
         if (gameState.auxValue === null) {
             gameState.auxValue = numObj.value;
             gameState.auxLog = `${numObj.value}`;
@@ -233,21 +232,33 @@ function computeOp(a, op, b) {
     return res;
 }
 
-// BOTÓN SUBIR AUXILIAR AL PRINCIPAL
+// BOTÓN SUBIR AUXILIAR AL PRINCIPAL (CONSERVANDO MEMORIA Y PERMITIENDO SEGUIR OPERANDO)
 document.getElementById('btn-upload-aux').addEventListener('click', () => {
     if (gameState.isEvaluating || gameState.auxValue === null) return;
+
+    // Si el cuadro principal está vacío, el auxiliar pasa a ser el valor principal directamente
+    if (gameState.mainValue === null) {
+        gameState.mainValue = gameState.auxValue;
+        gameState.mainLog = `(${gameState.auxLog})`;
+    } else if (gameState.mainOp !== null) {
+        // Si el principal estaba esperando un operador, aplicamos el resultado auxiliar directamente
+        let res = computeOp(gameState.mainValue, gameState.mainOp, gameState.auxValue);
+        if (res === null) return;
+        gameState.mainValue = res;
+        gameState.mainLog += ` (${gameState.auxLog})`;
+        gameState.mainOp = null;
+    } else {
+        // Si el principal ya tenía un valor completo sin operador, alertamos o exigimos operador previo
+        alert("Selecciona un operador (+, -, ×, ÷) en el Cuadro Principal antes de subir el valor auxiliar.");
+        return;
+    }
     
-    // Al subir el auxiliar al principal, el valor calculado del auxiliar se convierte en la base del principal
-    gameState.mainValue = gameState.auxValue;
-    gameState.mainLog = `(${gameState.auxLog})`;
-    gameState.mainOp = null;
-    
-    // Limpiar auxiliar tras subirlo
+    // Limpiar el bloc auxiliar tras subir su valor con éxito
     gameState.auxValue = null;
     gameState.auxOp = null;
     gameState.auxLog = "";
 
-    // Cambiar automáticamente la selección activa al Principal
+    // Volver a enfocar automáticamente en el Cuadro Principal
     document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
     gameState.activeTarget = 'main';
 
