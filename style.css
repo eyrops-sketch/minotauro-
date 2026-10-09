@@ -107,7 +107,7 @@ button:hover {
 
 .expression-container {
     background: #121214;
-    min-height: 40px;
+    min-height: 45px;
     border: 1px dashed #424248;
     border-radius: 4px;
     display: flex;
@@ -117,6 +117,7 @@ button:hover {
     margin-bottom: 1rem;
     font-size: 1.1rem;
     color: #fba94c;
+    text-align: center;
     word-break: break-all;
 }
 
@@ -131,7 +132,7 @@ button:hover {
 }
 
 .operators-grid {
-    grid-template-columns: repeat(5, 1fr); /* Ajustado para los 5 botones (+, -, *, /, =) */
+    grid-template-columns: repeat(5, 1fr);
 }
 
 .actions-grid {
@@ -176,8 +177,7 @@ button:hover {
 
 .feedback {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-top: 10px;
-    min-height: 20px;
+    min-height: 25px;
 }
-
