@@ -39,15 +39,31 @@ const timerDurationGroup = document.getElementById('timer-duration-group');
 const coverImage = document.getElementById('cover-image');
 const introVideo = document.getElementById('intro-video');
 
-// GENERACIÓN AUTOMÁTICA DE LA LISTA DE IMÁGENES min_
-// El sistema genera automáticamente desde min_01.jpg hasta min_99.jpg. 
-// ¡Sube tus nuevas imágenes con formato min_XX.jpg y el sistema las usará al instante!
-const totalMinImages = 99; // Límite máximo cubierto automáticamente
-let availableMinImages = [];
-for (let i = 1; i <= totalMinImages; i++) {
-    let numStr = i < 10 ? '0' + i : i;
-    availableMinImages.push(`min_${numStr}.jpg`);
+// ARRAY TEMPORAL DINÁMICO
+let availableMinImages = ['min_01.jpg'];
+
+// FUNCIÓN PARA LEER EL DIRECTORIO AUTOMÁTICAMENTE DESDE GITHUB
+async function fetchMultimediaDirectory() {
+    try {
+        const response = await fetch('https://api.github.com/repos/eyrops-sketch/minotauro-/contents/multimedia');
+        if (!response.ok) throw new Error('Error al conectar con el repositorio');
+        
+        const files = await response.json();
+        
+        const fetchedImages = files
+            .map(file => file.name)
+            .filter(name => name.startsWith('min_') && !name.endsWith('.mp4'));
+            
+        if (fetchedImages.length > 0) {
+            availableMinImages = fetchedImages;
+            console.log("Imágenes cargadas automáticamente:", availableMinImages);
+        }
+    } catch (error) {
+        console.log("Usando imágenes por defecto. Error de API:", error);
+    }
 }
+
+fetchMultimediaDirectory();
 
 timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
@@ -122,14 +138,11 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 function initNewTurnWithImage() {
     if (gameState.gameOver) return;
 
-    // Selecciona de forma automática un número aleatorio dentro del rango disponible
     const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
     const imgElement = document.getElementById('round-random-img');
     
     imgElement.src = `multimedia/${randomImgName}`;
     
-    // Si por casualidad elige un número superior al que has subido físicamente, 
-    // redirige automáticamente a la portada para evitar errores visuales en la web.
     imgElement.onerror = function() {
         this.src = 'multimedia/00_portada.jpg';
     };
@@ -260,7 +273,6 @@ operatorsGrid.forEach(btn => {
         handleOperatorClick(btn.dataset.op);
     });
 });
-
 function handleNumberClick(numObj) {
     if (gameState.isEvaluating || gameState.gameOver) return;
     const targetBox = gameState.activeTarget;
