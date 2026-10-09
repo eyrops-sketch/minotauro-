@@ -203,8 +203,9 @@ button:hover {
     grid-template-columns: repeat(3, 1fr);
 }
 
+/* 4 COLUMNAS PARA LOS 4 OPERADORES */
 .operators-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
 }
 
 .actions-grid {
@@ -227,24 +228,20 @@ button:hover {
     cursor: not-allowed;
 }
 
-/* BOTONES DE OPERADORES AMPLIADOS Y MÁS VISIBLES */
+/* OPERADORES GRANDES Y CON COLORES PROPIOS VIVOS */
 .btn-op {
     background-color: #27272a;
-    color: #fb923c;
     border: 2px solid #71717a;
-    font-size: 1.4rem;
+    font-size: 1.8rem;
     font-weight: 900;
-    padding: 14px 0;
+    padding: 10px 0;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-.btn-equals {
-    background-color: #38bdf8;
-    color: #090a0f;
-    border: 2px solid #bae6fd;
-    font-size: 1.4rem;
-    font-weight: 900;
-}
+.btn-plus { color: #4ade80; }  /* Verde vivo */
+.btn-minus { color: #f87171; } /* Rojo vivo */
+.btn-mult { color: #facc15; }  /* Amarillo brillante */
+.btn-div { color: #38bdf8; }   /* Azul celeste vivo */
 
 .btn-secondary {
     background-color: #3f3f46;
