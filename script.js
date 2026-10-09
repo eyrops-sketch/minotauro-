@@ -37,7 +37,6 @@ timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
 });
 
-// Control dinámico del color del selector de modo
 document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
         gameState.activeTarget = e.target.value;
@@ -175,7 +174,7 @@ function handleNumberClick(numObj) {
             let res = computeOp(gameState.mainValue, gameState.mainOp, numObj.value);
             if (res === null) { undoLastAction(); return; }
             gameState.mainValue = res;
-            gameState.mainLog += ` ${numObj.value}`; // Evita duplicar el operador visualmente
+            gameState.mainLog += ` ${numObj.value}`;
             gameState.mainOp = null;
         } else {
             undoLastAction(); return;
@@ -188,7 +187,7 @@ function handleNumberClick(numObj) {
             let res = computeOp(gameState.auxValue, gameState.auxOp, numObj.value);
             if (res === null) { undoLastAction(); return; }
             gameState.auxValue = res;
-            gameState.auxLog += ` ${numObj.value}`; // Evita duplicar el operador visualmente
+            gameState.auxLog += ` ${numObj.value}`;
             gameState.auxOp = null;
         } else {
             undoLastAction(); return;
@@ -206,7 +205,7 @@ function handleOperatorClick(op) {
     let currentVal = targetBox === 'main' ? gameState.mainValue : gameState.auxValue;
     if (currentVal === null) return;
 
-    // EL BOTÓN '=' AHORA REALIZA EL CÁLCULO PARCIAL (EVALUACIÓN DEL BLOQUE ACTIVO)
+    // Cálculo parcial del bloque activo
     if (op === '=') {
         if (targetBox === 'main') {
             gameState.mainLog += ` = [${gameState.mainValue}]`;
@@ -251,28 +250,35 @@ function computeOp(a, op, b) {
     return res;
 }
 
-// BOTÓN SUBIR AUXILIAR AL PRINCIPAL
+// SUBIR AUXILIAR AL PRINCIPAL CON SINTAXIS LIMPIA Y CLARA (ej: 30 + 8)
 document.getElementById('btn-upload-aux').addEventListener('click', () => {
     if (gameState.isEvaluating || gameState.auxValue === null) return;
 
     if (gameState.mainValue === null) {
+        // Si el principal está vacío, adopta directamente el valor y la expresión limpia
         gameState.mainValue = gameState.auxValue;
-        gameState.mainLog = `(${gameState.auxLog})`;
+        gameState.mainLog = `${gameState.auxLog}`;
     } else if (gameState.mainOp !== null) {
+        // Si el principal tiene un operador pendiente (ej: "30 +"), añade limpiamente el número subido (ej: "8")
         let res = computeOp(gameState.mainValue, gameState.mainOp, gameState.auxValue);
         if (res === null) return;
+        
+        // Limpiamos el log anterior quitando bloques feos y dejamos una sintaxis clara tipo "30 + 8"
+        let cleanBaseLog = gameState.mainLog.split('=')[0].trim();
+        gameState.mainLog = `${cleanBaseLog} ${gameState.mainOp === '*' ? '×' : gameState.mainOp === '/' ? '÷' : gameState.mainOp} ${gameState.auxValue}`;
         gameState.mainValue = res;
-        gameState.mainLog += ` (${gameState.auxLog})`;
         gameState.mainOp = null;
     } else {
         alert("Selecciona un operador (+, -, ×, ÷) en el Cuadro Principal antes de subir el valor auxiliar.");
         return;
     }
     
+    // Limpiar auxiliar tras subirlo
     gameState.auxValue = null;
     gameState.auxOp = null;
     gameState.auxLog = "";
 
+    // Enfocar automáticamente el Cuadro Principal
     document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
     gameState.activeTarget = 'main';
     document.getElementById('label-main').classList.add('active-mode-main');
@@ -340,7 +346,6 @@ if (config.allowUndo) {
     });
 }
 
-// BOTÓN VERDE DE COMPROBACIÓN FINAL CONTRA EL OBJETIVO DEL LABERINTO
 document.getElementById('btn-submit').addEventListener('click', () => {
     evaluateFinalResult();
 });
@@ -416,4 +421,4 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-            }
+}
