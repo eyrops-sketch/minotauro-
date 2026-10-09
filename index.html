@@ -50,10 +50,10 @@
             <button id="start-game-btn" class="btn-primary">Entrar al Laberinto</button>
         </div>
 
-        <!-- PANTALLA DE JUEGO / PRUEBA DE CIFRAS -->
+        <!-- PANTALLA DE JUEGO -->
         <div id="game-screen" class="screen">
             <header class="game-header">
-                <div class="stats">Distancia Salida: <span id="dist-salida">50</span>m</div>
+                <div class="stats">Salida: <span id="dist-salida">50</span>m</div>
                 <div class="stats danger">Minotauro: <span id="dist-minotauro">20</span>m</div>
                 <div id="timer-display" class="timer">Tiempo: <span id="time-left">45</span>s</div>
             </header>
@@ -64,8 +64,26 @@
                     <h2 id="target-number">000</h2>
                 </div>
 
-                <div class="expression-container">
-                    <div id="current-expression">Selecciona número o pulsa ficha...</div>
+                <!-- SELETOR DE MODO (PRINCIPAL O AUXILIAR) -->
+                <div class="mode-selector">
+                    <label><input type="radio" name="calc-mode" value="main" checked> Cuadro Principal</label>
+                    <label><input type="radio" name="calc-mode" value="aux"> Bloc Auxiliar</label>
+                </div>
+
+                <!-- CUADRO GENERAL / PRINCIPAL -->
+                <div class="expression-container main-box">
+                    <span class="box-label">Principal:</span>
+                    <div id="current-expression">Selecciona ficha o número...</div>
+                </div>
+
+                <!-- CUADRO AUXILIAR / INTERMEDIO -->
+                <div class="expression-container aux-box">
+                    <span class="box-label">Auxiliar:</span>
+                    <div id="aux-expression">Vacío (usa el selector para operar aquí)</div>
+                </div>
+
+                <div class="aux-actions">
+                    <button id="btn-upload-aux" class="btn-info">⬆️ Subir Auxiliar al Principal</button>
                 </div>
 
                 <div class="numbers-grid" id="numbers-grid">
