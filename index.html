@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto del Minotauro - El Reto de la Cifra</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- PANTALLA DE CONFIGURACIÓN -->
+        <div id="config-screen" class="screen active">
+            <h1>Laberinto del Minotauro</h1>
+            <h2>Configuración de la Partida</h2>
+            
+            <div class="config-group">
+                <label for="num-count">Cantidad de números base:</label>
+                <select id="num-count">
+                    <option value="4">4 números (Fácil)</option>
+                    <option value="6" selected>6 números (Clásico)</option>
+                    <option value="8">8 números (Difícil)</option>
+                </select>
+            </div>
+
+            <div class="config-group">
+                <label for="max-target">Rango del número objetivo:</label>
+                <select id="max-target">
+                    <option value="100">Bajo (1 - 100)</option>
+                    <option value="500">Medio (1 - 500)</option>
+                    <option value="999" selected>Clásico (100 - 999)</option>
+                </select>
+            </div>
+
+            <div class="config-group">
+                <label for="timer-enabled">¿Activar cronómetro?</label>
+                <input type="checkbox" id="timer-enabled" checked>
+            </div>
+
+            <div class="config-group" id="timer-duration-group">
+                <label for="timer-seconds">Segundos por turno:</label>
+                <input type="number" id="timer-seconds" value="45" min="10" max="120">
+            </div>
+
+            <div class="config-group">
+                <label for="allow-undo">Permitir deshacer operación:</label>
+                <input type="checkbox" id="allow-undo" checked>
+            </div>
+
+            <button id="start-game-btn" class="btn-primary">Entrar al Laberinto</button>
+        </div>
+
+        <!-- PANTALLA DE JUEGO / PRUEBA DE CIFRAS -->
+        <div id="game-screen" class="screen">
+            <header class="game-header">
+                <div class="stats">Distancia a la Salida: <span id="dist-salida">50</span>m</div>
+                <div class="stats danger">Minotauro: <span id="dist-minotauro">20</span>m</div>
+                <div id="timer-display" class="timer">Tiempo: <span id="time-left">45</span>s</div>
+            </header>
+
+            <div class="cifras-board">
+                <div class="target-container">
+                    <span>Objetivo a alcanzar:</span>
+                    <h2 id="target-number">000</h2>
+                </div>
+
+                <div class="expression-container">
+                    <div id="current-expression">Selecciona números y operaciones...</div>
+                </div>
+
+                <div class="numbers-grid" id="numbers-grid">
+                    <!-- Las fichas de números se inyectan por JS -->
+                </div>
+
+                <div class="operators-grid">
+                    <button class="btn-op" data-op="+">+</button>
+                    <button class="btn-op" data-op="-">-</button>
+                    <button class="btn-op" data-op="*">×</button>
+                    <button class="btn-op" data-op="/">÷</button>
+                </div>
+
+                <div class="actions-grid">
+                    <button id="btn-undo" class="btn-secondary">Deshacer</button>
+                    <button id="btn-clear" class="btn-secondary">Borrar Todo</button>
+                    <button id="btn-submit" class="btn-success">¡Comprobar Cifra!</button>
+                </div>
+                
+                <div id="result-feedback" class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
 
