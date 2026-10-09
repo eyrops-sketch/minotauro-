@@ -52,10 +52,11 @@
 
         <!-- PANTALLA DE JUEGO -->
         <div id="game-screen" class="screen">
-            <header class="game-header">
-                <div class="stats">Salida: <span id="dist-salida">50</span>m</div>
-                <div class="stats danger">Minotauro: <span id="dist-minotauro">20</span>m</div>
-                <div id="timer-display" class="timer">Tiempo: <span id="time-left">45</span>s</div>
+            <!-- CABECERA CON CABEZA DE TORO -->
+            <header class="game-header-box">
+                <div class="stat-item exit">🏁 Salida: <span id="dist-salida">50</span>m</div>
+                <div class="stat-item minotaur">🐃 Minotauro: <span id="dist-minotauro">20</span>m</div>
+                <div class="stat-item timer" id="timer-display">⏳ <span id="time-left">45</span>s</div>
             </header>
 
             <div class="cifras-board">
@@ -64,10 +65,14 @@
                     <h2 id="target-number">000</h2>
                 </div>
 
-                <!-- SELETOR DE MODO (PRINCIPAL O AUXILIAR) -->
+                <!-- SELECTOR DE MODO DINÁMICO -->
                 <div class="mode-selector">
-                    <label><input type="radio" name="calc-mode" value="main" checked> Cuadro Principal</label>
-                    <label><input type="radio" name="calc-mode" value="aux"> Bloc Auxiliar</label>
+                    <label id="label-main" class="active-mode-main">
+                        <input type="radio" name="calc-mode" value="main" checked> Cuadro Principal
+                    </label>
+                    <label id="label-aux">
+                        <input type="radio" name="calc-mode" value="aux"> Bloc Auxiliar
+                    </label>
                 </div>
 
                 <!-- CUADRO GENERAL / PRINCIPAL -->
