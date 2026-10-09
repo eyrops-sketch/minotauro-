@@ -52,7 +52,6 @@
 
         <!-- PANTALLA DE JUEGO -->
         <div id="game-screen" class="screen">
-            <!-- CABECERA CON CABEZA DE TORO -->
             <header class="game-header-box">
                 <div class="stat-item exit">🏁 Salida: <span id="dist-salida">50</span>m</div>
                 <div class="stat-item minotaur">🐃 Minotauro: <span id="dist-minotauro">20</span>m</div>
@@ -95,12 +94,12 @@
                     <!-- Fichas inyectadas por JS -->
                 </div>
 
+                <!-- OPERADORES (SIN BOTÓN IGUAL Y CON COLORES VIVOS) -->
                 <div class="operators-grid">
-                    <button class="btn-op" data-op="+">+</button>
-                    <button class="btn-op" data-op="-">-</button>
-                    <button class="btn-op" data-op="*">×</button>
-                    <button class="btn-op" data-op="/">÷</button>
-                    <button class="btn-op btn-equals" data-op="=">=</button>
+                    <button class="btn-op btn-plus" data-op="+">+</button>
+                    <button class="btn-op btn-minus" data-op="-">-</button>
+                    <button class="btn-op btn-mult" data-op="*">×</button>
+                    <button class="btn-op btn-div" data-op="/">÷</button>
                 </div>
 
                 <div class="actions-grid">
@@ -110,6 +109,11 @@
                 </div>
                 
                 <div id="result-feedback" class="feedback"></div>
+
+                <!-- BOTÓN DE REJUGAR (OCULTO HASTA EL FINAL) -->
+                <div id="game-over-container" style="display: none; margin-top: 15px;">
+                    <button id="btn-restart" class="btn-primary" style="background-color: #38bdf8; color: #090a0f;">🔄 Volver a Jugar</button>
+                </div>
             </div>
         </div>
     </div>
