@@ -10,9 +10,12 @@ let config = {
 let gameState = {
     target: 0,
     availableNumbers: [],
-    expressionTokens: [], // Almacena los pasos para poder deshacer
+    expressionTokens: [],
     timeLeft: 0,
-    timerInterval: null
+    timerInterval: null,
+    distSalida: 50,
+    distMinotauro: 20,
+    isEvaluating: false
 };
 
 // Elementos del DOM
@@ -22,26 +25,27 @@ const startGameBtn = document.getElementById('start-game-btn');
 const timerEnabledCheckbox = document.getElementById('timer-enabled');
 const timerDurationGroup = document.getElementById('timer-duration-group');
 
-// Control visual del checkbox de tiempo
 timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
 });
 
 startGameBtn.addEventListener('click', () => {
-    // Leer configuración de la interfaz
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
     config.timerEnabled = timerEnabledCheckbox.checked;
     config.timerSeconds = parseInt(document.getElementById('timer-seconds').value);
     config.allowUndo = document.getElementById('allow-undo').checked;
 
-    // Configurar visibilidad de botones según opciones
     document.getElementById('btn-undo').style.display = config.allowUndo ? 'block' : 'none';
     if(!config.allowUndo) {
         document.getElementById('btn-clear').style.gridColumn = 'span 2';
     }
 
-    // Cambiar pantalla
+    // Inicializar distancias de la partida
+    gameState.distSalida = 50;
+    gameState.distMinotauro = 20;
+    updateHUD();
+
     configScreen.classList.remove('active');
     gameScreen.classList.add('active');
 
@@ -49,18 +53,18 @@ startGameBtn.addEventListener('click', () => {
 });
 
 function initTurn() {
-    // Generar número objetivo aleatorio según rango
+    gameState.isEvaluating = false;
+    document.getElementById('result-feedback').textContent = '';
+
     const minTarget = config.maxTarget === 999 ? 100 : 10;
     gameState.target = Math.floor(Math.random() * (config.maxTarget - minTarget + 1)) + minTarget;
     document.getElementById('target-number').textContent = gameState.target;
 
-    // Generar números aleatorios base (mezcla de pequeños y grandes estilo Cifras)
     gameState.availableNumbers = [];
     const poolPequenos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const poolGrandes = [25, 50, 75, 100];
 
     for (let i = 0; i < config.numCount; i++) {
-        // Asegurar al menos un grande si hay suficientes huecos, o aleatorio puro
         let num;
         if (i === 0 && config.numCount >= 6) {
             num = poolGrandes[Math.floor(Math.random() * poolGrandes.length)];
@@ -74,7 +78,6 @@ function initTurn() {
     updateExpressionDisplay();
     renderNumbersGrid();
 
-    // Iniciar cronómetro si está activo
     if (config.timerEnabled) {
         gameState.timeLeft = config.timerSeconds;
         document.getElementById('timer-display').style.display = 'block';
@@ -82,6 +85,7 @@ function initTurn() {
         
         clearInterval(gameState.timerInterval);
         gameState.timerInterval = setInterval(() => {
+            if (gameState.isEvaluating) return;
             gameState.timeLeft--;
             document.getElementById('time-left').textContent = gameState.timeLeft;
             if (gameState.timeLeft <= 0) {
@@ -108,7 +112,6 @@ function renderNumbersGrid() {
     });
 }
 
-// Controladores de interacción matemática
 const operatorsGrid = document.querySelectorAll('.btn-op');
 operatorsGrid.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -117,6 +120,7 @@ operatorsGrid.forEach(btn => {
 });
 
 function selectNumber(numObj) {
+    if (gameState.isEvaluating) return;
     numObj.used = true;
     gameState.expressionTokens.push({ type: 'num', value: numObj.value, id: numObj.id });
     renderNumbersGrid();
@@ -124,7 +128,7 @@ function selectNumber(numObj) {
 }
 
 function selectOperator(op) {
-    // Evitar poner operador si el último token ya es un operador o está vacío
+    if (gameState.isEvaluating) return;
     const last = gameState.expressionTokens[gameState.expressionTokens.length - 1];
     if (!last || last.type === 'op') return;
 
@@ -148,8 +152,8 @@ function updateExpressionDisplay() {
     display.textContent = text;
 }
 
-// Botones de acción
 document.getElementById('btn-clear').addEventListener('click', () => {
+    if (gameState.isEvaluating) return;
     gameState.availableNumbers.forEach(n => n.used = false);
     gameState.expressionTokens = [];
     renderNumbersGrid();
@@ -159,7 +163,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 
 if (config.allowUndo) {
     document.getElementById('btn-undo').addEventListener('click', () => {
-        if (gameState.expressionTokens.length === 0) return;
+        if (gameState.isEvaluating || gameState.expressionTokens.length === 0) return;
         const lastToken = gameState.expressionTokens.pop();
         
         if (lastToken.type === 'num') {
@@ -176,13 +180,13 @@ document.getElementById('btn-submit').addEventListener('click', () => {
 });
 
 function evaluateExpression() {
-    if (gameState.expressionTokens.length === 0) return;
+    if (gameState.isEvaluating || gameState.expressionTokens.length === 0) return;
+    gameState.isEvaluating = true;
+    if (config.timerEnabled) clearInterval(gameState.timerInterval);
 
-    // Convertir los tokens a una cadena ejecutable de JS de manera segura básica
     let exprString = gameState.expressionTokens.map(t => t.value).join(' ');
 
     try {
-        // Evaluador matemático simple
         let resultado = eval(exprString);
         
         if (isNaN(resultado) || !isFinite(resultado)) {
@@ -192,26 +196,80 @@ function evaluateExpression() {
         let diferencia = Math.abs(resultado - gameState.target);
         let feedback = document.getElementById('result-feedback');
 
+        // Lógica de movimiento según aproximación
         if (diferencia === 0) {
+            gameState.distSalida -= 6;
             feedback.style.color = '#00b37e';
-            feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas con bonificación máxima!`;
-        } else {
+            feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros hacia la salida!`;
+        } else if (diferencia <= 5) {
+            gameState.distSalida -= 3;
+            feedback.style.color = '#00b37e';
+            feedback.textContent = `¡Muy cerca! (${resultado}, dif: ${diferencia}). Avanzas 3 metros.`;
+        } else if (diferencia <= 15) {
+            gameState.distSalida -= 1;
             feedback.style.color = '#fba94c';
-            feedback.textContent = `Resultado: ${resultado}. Te has quedado a una distancia de ${diferencia}.`;
+            feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
+        } else {
+            gameState.distMinotauro -= 3;
+            feedback.style.color = '#f75a68';
+            feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro acorta 3 metros!`;
         }
 
-        if (config.timerEnabled) clearInterval(gameState.timerInterval);
+        // Asegurar límites lógicos
+        if (gameState.distSalida < 0) gameState.distSalida = 0;
+        if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
+        updateHUD();
+
+        // Comprobar fin de partida
+        if (gameState.distSalida === 0) {
+            feedback.style.color = '#00b37e';
+            feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
+            return; // Fin del juego
+        }
+
+        if (gameState.distMinotauro === 0) {
+            feedback.style.color = '#f75a68';
+            feedback.textContent = "¡El Minotauro te ha alcanzado! (Aquí se activará el combate táctico)";
+            return; // Fin o inicio de combate
+        }
+
+        // Continuar al siguiente turno tras 3 segundos
+        setTimeout(() => {
+            initTurn();
+        }, 3000);
 
     } catch (e) {
+        gameState.isEvaluating = false;
+        if (config.timerEnabled) {
+            // Reactivar cronómetro si da error de expresión
+            // (Opcional según prefieras)
+        }
         document.getElementById('result-feedback').style.color = '#f75a68';
         document.getElementById('result-feedback').textContent = "Expresión matemática incorrecta o incompleta.";
     }
 }
 
 function handleTimeOut() {
+    gameState.isEvaluating = true;
     const feedback = document.getElementById('result-feedback');
     feedback.style.color = '#f75a68';
-    feedback.textContent = "¡Se acabó el tiempo! El Minotauro aprovecha tu duda y avanza hacia ti.";
-    // Aquí luego conectaremos el movimiento del Minotauro
+    feedback.textContent = "¡Se acabó el tiempo! El Minotauro avanza 4 metros hacia ti.";
+    
+    gameState.distMinotauro -= 4;
+    if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
+    updateHUD();
+
+    if (gameState.distMinotauro === 0) {
+        feedback.textContent = "¡El Minotauro te ha atrapado por agotamiento del tiempo!";
+        return;
+    }
+
+    setTimeout(() => {
+        initTurn();
+    }, 3000);
 }
 
+function updateHUD() {
+    document.getElementById('dist-salida').textContent = gameState.distSalida;
+    document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
+}
