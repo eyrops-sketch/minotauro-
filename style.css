@@ -29,17 +29,38 @@ body {
 h1, h2 {
     text-align: center;
     color: #fb923c;
+    margin: 10px 0;
+}
+
+/* ESTILOS PARA LA PORTADA Y VÍDEO MULTIMEDIA */
+.media-box {
+    width: 100%;
+    height: 180px;
+    background-color: #000;
+    border-radius: 8px;
+    border: 2px solid #52525b;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.media-box img, .media-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .config-group {
-    margin-bottom: 1.2rem;
+    margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .config-group label {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #e4e4e7;
 }
 
@@ -72,7 +93,7 @@ button:hover {
     color: #ffffff;
     width: 100%;
     font-size: 1.05rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
 
@@ -89,17 +110,9 @@ button:hover {
     font-weight: bold;
 }
 
-.stat-item.exit {
-    color: #4ade80;
-}
-
-.stat-item.minotaur {
-    color: #f87171;
-}
-
-.stat-item.timer {
-    color: #38bdf8;
-}
+.stat-item.exit { color: #4ade80; }
+.stat-item.minotaur { color: #f87171; }
+.stat-item.timer { color: #38bdf8; }
 
 .target-container {
     text-align: center;
@@ -141,13 +154,8 @@ button:hover {
     transition: color 0.2s;
 }
 
-.active-mode-main {
-    color: #fb923c !important;
-}
-
-.active-mode-aux {
-    color: #38bdf8 !important;
-}
+.active-mode-main { color: #fb923c !important; }
+.active-mode-aux { color: #38bdf8 !important; }
 
 .expression-container {
     background: #09090b;
@@ -162,15 +170,8 @@ button:hover {
     font-weight: bold;
 }
 
-.main-box {
-    border: 2px solid #fb923c;
-    color: #fed7aa;
-}
-
-.aux-box {
-    border: 2px dashed #38bdf8;
-    color: #e0f2fe;
-}
+.main-box { border: 2px solid #fb923c; color: #fed7aa; }
+.aux-box { border: 2px dashed #38bdf8; color: #e0f2fe; }
 
 .box-label {
     font-size: 0.75rem;
@@ -180,9 +181,7 @@ button:hover {
     text-transform: uppercase;
 }
 
-.aux-actions {
-    margin-bottom: 0.8rem;
-}
+.aux-actions { margin-bottom: 0.8rem; }
 
 .btn-info {
     background-color: #3b82f6;
@@ -199,17 +198,9 @@ button:hover {
     margin-bottom: 0.8rem;
 }
 
-.numbers-grid {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.operators-grid {
-    grid-template-columns: repeat(4, 1fr);
-}
-
-.actions-grid {
-    grid-template-columns: repeat(3, 1fr);
-}
+.numbers-grid { grid-template-columns: repeat(3, 1fr); }
+.operators-grid { grid-template-columns: repeat(4, 1fr); }
+.actions-grid { grid-template-columns: repeat(3, 1fr); }
 
 .btn-num {
     background-color: #3f3f46;
