@@ -24,17 +24,30 @@ let gameState = {
     distSalida: 50,
     distMinotauro: 20,
     isEvaluating: false,
-    gameOver: false
+    gameOver: false,
+    turnCount: 0
 };
 
 const configScreen = document.getElementById('config-screen');
+const roundSummaryScreen = document.getElementById('round-summary-screen');
 const gameScreen = document.getElementById('game-screen');
 const startGameBtn = document.getElementById('start-game-btn');
+const nextRoundBtn = document.getElementById('btn-next-round');
+
 const timerEnabledCheckbox = document.getElementById('timer-enabled');
 const timerDurationGroup = document.getElementById('timer-duration-group');
-
 const coverImage = document.getElementById('cover-image');
 const introVideo = document.getElementById('intro-video');
+
+// GENERACIÓN AUTOMÁTICA DE LA LISTA DE IMÁGENES min_
+// El sistema genera automáticamente desde min_01.jpg hasta min_99.jpg. 
+// ¡Sube tus nuevas imágenes con formato min_XX.jpg y el sistema las usará al instante!
+const totalMinImages = 99; // Límite máximo cubierto automáticamente
+let availableMinImages = [];
+for (let i = 1; i <= totalMinImages; i++) {
+    let numStr = i < 10 ? '0' + i : i;
+    availableMinImages.push(`min_${numStr}.jpg`);
+}
 
 timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
@@ -56,7 +69,6 @@ document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
     });
 });
 
-// AL PULSAR ENTRAR AL LABERINTO: REPRODUCIR VÍDEO ANTES DE ARRANCAR
 startGameBtn.addEventListener('click', () => {
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
@@ -70,27 +82,21 @@ startGameBtn.addEventListener('click', () => {
         document.getElementById('btn-clear').style.gridColumn = 'span 2';
     }
 
-    // Ocultar imagen de portada y mostrar vídeo en su lugar
     coverImage.style.display = 'none';
     introVideo.style.display = 'block';
     startGameBtn.disabled = true;
     startGameBtn.textContent = "Cargando Laberinto...";
 
     introVideo.play().catch(() => {
-        // Si el navegador bloquea el autoplay por políticas, salta directamente al juego
         proceedToGame();
     });
 
-    // Cuando el vídeo termina, arranca el juego automáticamente
     introVideo.onended = () => {
         proceedToGame();
     };
 });
 
 function proceedToGame() {
-    configScreen.classList.remove('active');
-    gameScreen.classList.add('active');
-    // Restaurar estado del botón por si se vuelve al menú
     startGameBtn.disabled = false;
     startGameBtn.textContent = "Entrar al Laberinto";
     coverImage.style.display = 'block';
@@ -103,17 +109,51 @@ function startNewGame() {
     gameState.distSalida = 50;
     gameState.distMinotauro = 20;
     gameState.gameOver = false;
+    gameState.turnCount = 0;
     document.getElementById('game-over-container').style.display = 'none';
     updateHUD();
-    initTurn();
+    initNewTurnWithImage();
 }
 
 document.getElementById('btn-restart').addEventListener('click', () => {
     startNewGame();
 });
 
-function initTurn() {
+function initNewTurnWithImage() {
     if (gameState.gameOver) return;
+
+    // Selecciona de forma automática un número aleatorio dentro del rango disponible
+    const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
+    const imgElement = document.getElementById('round-random-img');
+    
+    imgElement.src = `multimedia/${randomImgName}`;
+    
+    // Si por casualidad elige un número superior al que has subido físicamente, 
+    // redirige automáticamente a la portada para evitar errores visuales en la web.
+    imgElement.onerror = function() {
+        this.src = 'multimedia/00_portada.jpg';
+    };
+
+    if (gameState.turnCount > 0) {
+        configScreen.classList.remove('active');
+        gameScreen.classList.remove('active');
+        roundSummaryScreen.classList.add('active');
+    } else {
+        proceedToActualTurn();
+    }
+}
+
+nextRoundBtn.addEventListener('click', () => {
+    roundSummaryScreen.classList.remove('active');
+    proceedToActualTurn();
+});
+
+function proceedToActualTurn() {
+    configScreen.classList.remove('active');
+    roundSummaryScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+
+    gameState.turnCount++;
     gameState.isEvaluating = false;
     resetCalculators();
     document.getElementById('result-feedback').textContent = '';
@@ -410,21 +450,26 @@ function evaluateFinalResult() {
     let resultado = gameState.mainValue;
     let diferencia = Math.abs(resultado - gameState.target);
     let feedback = document.getElementById('result-feedback');
+    let valoracionText = "";
 
     if (diferencia === 0) {
         gameState.distSalida -= 6;
+        valoracionText = "¡Cifra Exacta!";
         feedback.style.color = '#4ade80';
         feedback.textContent = `¡CIFRA EXACTA! (${resultado}). ¡Avanzas 6 metros!`;
     } else if (diferencia <= 5) {
         gameState.distSalida -= 3;
+        valoracionText = "Muy cerca";
         feedback.style.color = '#4ade80';
         feedback.textContent = `¡Muy cerca! (${resultado}, dif: ${diferencia}). Avanzas 3 metros.`;
     } else if (diferencia <= 15) {
         gameState.distSalida -= 1;
+        valoracionText = "Aproximación moderada";
         feedback.style.color = '#fb923c';
         feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
     } else {
         gameState.distMinotauro -= 3;
+        valoracionText = "Demasiado lejos";
         feedback.style.color = '#f87171';
         feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro avanza 3 metros!`;
     }
@@ -449,9 +494,17 @@ function evaluateFinalResult() {
         return;
     }
 
+    document.getElementById('summary-turns').textContent = gameState.turnCount;
+    document.getElementById('summary-diff').textContent = diferencia;
+    document.getElementById('summary-val').textContent = valoracionText;
+    document.getElementById('summary-dist-salida').textContent = gameState.distSalida;
+    document.getElementById('summary-dist-minotauro').textContent = gameState.distMinotauro;
+
     setTimeout(() => {
-        if (!gameState.gameOver) initTurn();
-    }, 3000);
+        if (!gameState.gameOver) {
+            initNewTurnWithImage();
+        }
+    }, 2500);
 }
 
 function handleTimeOut() {
@@ -471,9 +524,17 @@ function handleTimeOut() {
         return;
     }
 
+    document.getElementById('summary-turns').textContent = gameState.turnCount;
+    document.getElementById('summary-diff').textContent = "Agotado";
+    document.getElementById('summary-val').textContent = "Tiempo Agotado";
+    document.getElementById('summary-dist-salida').textContent = gameState.distSalida;
+    document.getElementById('summary-dist-minotauro').textContent = gameState.distMinotauro;
+
     setTimeout(() => {
-        if (!gameState.gameOver) initTurn();
-    }, 3000);
+        if (!gameState.gameOver) {
+            initNewTurnWithImage();
+        }
+    }, 2500);
 }
 
 function updateHUD() {
