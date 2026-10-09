@@ -33,6 +33,9 @@ const startGameBtn = document.getElementById('start-game-btn');
 const timerEnabledCheckbox = document.getElementById('timer-enabled');
 const timerDurationGroup = document.getElementById('timer-duration-group');
 
+const coverImage = document.getElementById('cover-image');
+const introVideo = document.getElementById('intro-video');
+
 timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
 });
@@ -53,6 +56,7 @@ document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
     });
 });
 
+// AL PULSAR ENTRAR AL LABERINTO: REPRODUCIR VÍDEO ANTES DE ARRANCAR
 startGameBtn.addEventListener('click', () => {
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
@@ -66,11 +70,34 @@ startGameBtn.addEventListener('click', () => {
         document.getElementById('btn-clear').style.gridColumn = 'span 2';
     }
 
+    // Ocultar imagen de portada y mostrar vídeo en su lugar
+    coverImage.style.display = 'none';
+    introVideo.style.display = 'block';
+    startGameBtn.disabled = true;
+    startGameBtn.textContent = "Cargando Laberinto...";
+
+    introVideo.play().catch(() => {
+        // Si el navegador bloquea el autoplay por políticas, salta directamente al juego
+        proceedToGame();
+    });
+
+    // Cuando el vídeo termina, arranca el juego automáticamente
+    introVideo.onended = () => {
+        proceedToGame();
+    };
+});
+
+function proceedToGame() {
     configScreen.classList.remove('active');
     gameScreen.classList.add('active');
-
+    // Restaurar estado del botón por si se vuelve al menú
+    startGameBtn.disabled = false;
+    startGameBtn.textContent = "Entrar al Laberinto";
+    coverImage.style.display = 'block';
+    introVideo.style.display = 'none';
+    
     startNewGame();
-});
+}
 
 function startNewGame() {
     gameState.distSalida = 50;
@@ -95,7 +122,6 @@ function initTurn() {
     const poolPequenos = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const poolGrandes = [25, 50, 75, 100];
 
-    // Generar fichas iniciales
     let nums = [];
     for (let i = 0; i < config.numCount; i++) {
         let num;
@@ -108,15 +134,12 @@ function initTurn() {
     }
 
     if (config.solvableTarget) {
-        // Modo Forzado: Calculamos un objetivo resoluble combinando aleatoriamente algunos números de las fichas
         gameState.target = generateSolvableTarget(nums, minTarget, config.maxTarget);
     } else {
-        // Modo Pura Dificultad: Número completamente aleatorio dentro del rango
         gameState.target = Math.floor(Math.random() * (config.maxTarget - minTarget + 1)) + minTarget;
     }
 
     document.getElementById('target-number').textContent = gameState.target;
-
     gameState.availableNumbers = nums.map((val, idx) => ({ id: idx, value: val, used: false }));
 
     updateDisplays();
@@ -142,12 +165,9 @@ function initTurn() {
     }
 }
 
-// Función auxiliar para calcular un objetivo que se sepa que se puede alcanzar matemáticamente
 function generateSolvableTarget(numbers, min, max) {
     let pool = [...numbers];
     let current = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
-    
-    // Realizamos entre 2 y 4 operaciones válidas entre las fichas para asegurar un objetivo realista
     let ops = ['+', '-', '*', '/'];
     let steps = Math.min(3, pool.length);
 
@@ -164,7 +184,6 @@ function generateSolvableTarget(numbers, min, max) {
         }
     }
 
-    // Si se sale del rango establecido, generamos uno dentro del rango predeterminado por seguridad
     if (current < min || current > max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -460,4 +479,4 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-                }
+}
