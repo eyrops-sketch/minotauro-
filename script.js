@@ -48,14 +48,16 @@ async function fetchMultimediaDirectory() {
         const response = await fetch('https://api.github.com/repos/eyrops-sketch/minotauro-/contents/multimedia');
         if (!response.ok) throw new Error('Error al conectar');
         const files = await response.json();
+        
         const fetchedImages = files
             .map(file => file.name)
             .filter(name => name.startsWith('min_') && !name.endsWith('.mp4'));
+
         if (fetchedImages.length > 0) {
             availableMinImages = fetchedImages;
         }
     } catch (error) {
-        console.log("Usando imágenes por defecto.");
+        console.log("Usando multimedia por defecto.");
     }
 }
 
@@ -94,7 +96,6 @@ document.getElementById('box-container-aux').addEventListener('click', () => {
     setActiveTarget('aux');
 });
 
-// BOTÓN DISCRETO PARA VOLVER AL MENÚ PRINCIPAL DESDE EL JUEGO
 document.getElementById('btn-return-menu').addEventListener('click', () => {
     if (config.timerEnabled) clearInterval(gameState.timerInterval);
     gameScreen.classList.remove('active');
@@ -151,6 +152,12 @@ function startNewGame() {
     gameState.distMinotauro = config.initialMinotauro;
     gameState.gameOver = false;
     gameState.turnCount = 0;
+    
+    const nextBtn = document.getElementById('btn-next-round');
+    nextBtn.style.display = 'block';
+    nextBtn.textContent = "Siguiente Desafío ➡️";
+    nextBtn.onclick = handleNextRoundClick;
+    
     document.getElementById('game-over-container').style.display = 'none';
     updateHUD();
     initNewTurnWithImage();
@@ -160,18 +167,27 @@ document.getElementById('btn-restart').addEventListener('click', () => {
     startNewGame();
 });
 
-function initNewTurnWithImage() {
-    if (gameState.gameOver) return;
+function handleNextRoundClick() {
+    roundSummaryScreen.classList.remove('active');
+    proceedToActualTurn();
+}
 
-    const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
-    const imgElement = document.getElementById('round-random-img');
-    imgElement.src = `multimedia/${randomImgName}?rand=${Math.random()}`;
+function initNewTurnWithImage(forceImage = null) {
+    if (gameState.gameOver && forceImage === null) return;
+
+    const mediaBox = document.querySelector('#round-summary-screen .media-box');
     
-    imgElement.onerror = function() {
-        this.src = 'multimedia/00_portada.jpg';
-    };
+    let imgSrc = '';
+    if (forceImage) {
+        imgSrc = `multimedia/${forceImage}`;
+    } else {
+        const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
+        imgSrc = `multimedia/${randomImgName}?rand=${Math.random()}`;
+    }
 
-    if (gameState.turnCount > 0) {
+    mediaBox.innerHTML = `<img id="round-random-img" src="${imgSrc}" alt="Ilustración del laberinto" onerror="this.src='multimedia/00_portada.jpg'">`;
+
+    if (gameState.turnCount > 0 || forceImage !== null) {
         configScreen.classList.remove('active');
         gameScreen.classList.remove('active');
         roundSummaryScreen.classList.add('active');
@@ -180,10 +196,6 @@ function initNewTurnWithImage() {
     }
 }
 
-nextRoundBtn.addEventListener('click', () => {
-    roundSummaryScreen.classList.remove('active');
-    proceedToActualTurn();
-});
 function proceedToActualTurn() {
     configScreen.classList.remove('active');
     roundSummaryScreen.classList.remove('active');
@@ -474,6 +486,34 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     evaluateFinalResult();
 });
 
+function showGameOverScreen(isVictory) {
+    gameState.gameOver = true;
+    
+    initNewTurnWithImage('min_25.jpg');
+
+    const nextBtn = document.getElementById('btn-next-round');
+    nextBtn.textContent = isVictory ? "Reproducir Victoria 🏆" : "Reproducir Desenlace ☠️";
+    
+    nextBtn.onclick = () => {
+        const mediaBox = document.querySelector('#round-summary-screen .media-box');
+        const videoFile = isVictory ? 'min_ok.mp4' : 'min_fail.mp4';
+        
+        mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" autoplay controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
+        nextBtn.style.display = 'none';
+
+        const endingVideo = document.getElementById('ending-video');
+        
+        endingVideo.onerror = () => {
+             console.log("No se pudo cargar el video final, reiniciando partida.");
+             startNewGame();
+        };
+
+        endingVideo.addEventListener('ended', () => {
+            startNewGame();
+        });
+    };
+}
+
 function evaluateFinalResult() {
     if (gameState.isEvaluating || gameState.mainValue === null || gameState.gameOver) return;
     gameState.isEvaluating = true;
@@ -511,27 +551,25 @@ function evaluateFinalResult() {
     if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
     updateHUD();
 
+    document.getElementById('summary-turns').textContent = gameState.turnCount;
+    document.getElementById('summary-diff').textContent = diferencia;
+    document.getElementById('summary-val').textContent = valoracionText;
+    document.getElementById('summary-dist-salida').textContent = gameState.distSalida;
+    document.getElementById('summary-dist-minotauro').textContent = gameState.distMinotauro;
+
     if (gameState.distSalida === 0) {
         feedback.style.color = '#4ade80';
         feedback.textContent = "¡VICTORIA! Has conseguido escapar del laberinto.";
-        gameState.gameOver = true;
-        document.getElementById('game-over-container').style.display = 'block';
+        setTimeout(() => showGameOverScreen(true), 2500);
         return;
     }
 
     if (gameState.distMinotauro === 0) {
         feedback.style.color = '#f87171';
         feedback.textContent = "¡El Minotauro te ha alcanzado!";
-        gameState.gameOver = true;
-        document.getElementById('game-over-container').style.display = 'block';
+        setTimeout(() => showGameOverScreen(false), 2500);
         return;
     }
-
-    document.getElementById('summary-turns').textContent = gameState.turnCount;
-    document.getElementById('summary-diff').textContent = diferencia;
-    document.getElementById('summary-val').textContent = valoracionText;
-    document.getElementById('summary-dist-salida').textContent = gameState.distSalida;
-    document.getElementById('summary-dist-minotauro').textContent = gameState.distMinotauro;
 
     setTimeout(() => {
         if (!gameState.gameOver) {
@@ -550,18 +588,17 @@ function handleTimeOut() {
     if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
     updateHUD();
 
-    if (gameState.distMinotauro === 0) {
-        feedback.textContent = "¡El Minotauro te ha atrapado por tiempo!";
-        gameState.gameOver = true;
-        document.getElementById('game-over-container').style.display = 'block';
-        return;
-    }
-
     document.getElementById('summary-turns').textContent = gameState.turnCount;
     document.getElementById('summary-diff').textContent = "Agotado";
     document.getElementById('summary-val').textContent = "Tiempo Agotado";
     document.getElementById('summary-dist-salida').textContent = gameState.distSalida;
     document.getElementById('summary-dist-minotauro').textContent = gameState.distMinotauro;
+
+    if (gameState.distMinotauro === 0) {
+        feedback.textContent = "¡El Minotauro te ha atrapado por tiempo!";
+        setTimeout(() => showGameOverScreen(false), 2500);
+        return;
+    }
 
     setTimeout(() => {
         if (!gameState.gameOver) {
@@ -573,5 +610,5 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-        }
-            
+}
+
