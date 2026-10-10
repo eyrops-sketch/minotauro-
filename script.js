@@ -4,7 +4,9 @@ let config = {
     solvableTarget: true,
     timerEnabled: true,
     timerSeconds: 45,
-    allowUndo: true
+    allowUndo: true,
+    initialSalida: 50,
+    initialMinotauro: 20
 };
 
 let gameState = {
@@ -44,14 +46,11 @@ let availableMinImages = ['min_01.jpg'];
 async function fetchMultimediaDirectory() {
     try {
         const response = await fetch('https://api.github.com/repos/eyrops-sketch/minotauro-/contents/multimedia');
-        if (!response.ok) throw new Error('Error al conectar con el repositorio');
-        
+        if (!response.ok) throw new Error('Error al conectar');
         const files = await response.json();
-        
         const fetchedImages = files
             .map(file => file.name)
             .filter(name => name.startsWith('min_') && !name.endsWith('.mp4'));
-            
         if (fetchedImages.length > 0) {
             availableMinImages = fetchedImages;
         }
@@ -66,25 +65,40 @@ timerEnabledCheckbox.addEventListener('change', (e) => {
     timerDurationGroup.style.display = e.target.checked ? 'flex' : 'none';
 });
 
+function setActiveTarget(mode) {
+    gameState.activeTarget = mode;
+    document.querySelector(`input[name="calc-mode"][value="${mode}"]`).checked = true;
+    const labelMain = document.getElementById('label-main');
+    const labelAux = document.getElementById('label-aux');
+    
+    if (mode === 'main') {
+        labelMain.classList.add('active-mode-main');
+        labelAux.classList.remove('active-mode-aux');
+    } else {
+        labelAux.classList.add('active-mode-aux');
+        labelMain.classList.remove('active-mode-main');
+    }
+}
+
 document.querySelectorAll('input[name="calc-mode"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
-        gameState.activeTarget = e.target.value;
-        const labelMain = document.getElementById('label-main');
-        const labelAux = document.getElementById('label-aux');
-        
-        if (gameState.activeTarget === 'main') {
-            labelMain.classList.add('active-mode-main');
-            labelAux.classList.remove('active-mode-aux');
-        } else {
-            labelAux.classList.add('active-mode-aux');
-            labelMain.classList.remove('active-mode-main');
-        }
+        setActiveTarget(e.target.value);
     });
+});
+
+document.getElementById('box-container-main').addEventListener('click', () => {
+    setActiveTarget('main');
+});
+
+document.getElementById('box-container-aux').addEventListener('click', () => {
+    setActiveTarget('aux');
 });
 
 startGameBtn.addEventListener('click', () => {
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
+    config.initialSalida = parseInt(document.getElementById('init-dist-salida').value);
+    config.initialMinotauro = parseInt(document.getElementById('init-dist-minotauro').value);
     config.solvableTarget = document.getElementById('solvable-target').checked;
     config.timerEnabled = timerEnabledCheckbox.checked;
     config.timerSeconds = parseInt(document.getElementById('timer-seconds').value);
@@ -119,8 +133,8 @@ function proceedToGame() {
 }
 
 function startNewGame() {
-    gameState.distSalida = 50;
-    gameState.distMinotauro = 20;
+    gameState.distSalida = config.initialSalida;
+    gameState.distMinotauro = config.initialMinotauro;
     gameState.gameOver = false;
     gameState.turnCount = 0;
     document.getElementById('game-over-container').style.display = 'none';
@@ -137,8 +151,6 @@ function initNewTurnWithImage() {
 
     const randomImgName = availableMinImages[Math.floor(Math.random() * availableMinImages.length)];
     const imgElement = document.getElementById('round-random-img');
-    
-    // Evitamos caché añadiendo un parámetro de tiempo aleatorio para que cargue siempre una nueva
     imgElement.src = `multimedia/${randomImgName}?rand=${Math.random()}`;
     
     imgElement.onerror = function() {
@@ -158,7 +170,6 @@ nextRoundBtn.addEventListener('click', () => {
     roundSummaryScreen.classList.remove('active');
     proceedToActualTurn();
 });
-
 function proceedToActualTurn() {
     configScreen.classList.remove('active');
     roundSummaryScreen.classList.remove('active');
@@ -272,7 +283,6 @@ operatorsGrid.forEach(btn => {
     });
 });
 
-
 function handleNumberClick(numObj) {
     if (gameState.isEvaluating || gameState.gameOver) return;
     const targetBox = gameState.activeTarget;
@@ -383,11 +393,7 @@ document.getElementById('btn-upload-aux').addEventListener('click', () => {
     gameState.auxOp = null;
     gameState.auxLog = "";
 
-    document.querySelector('input[name="calc-mode"][value="main"]').checked = true;
-    gameState.activeTarget = 'main';
-    document.getElementById('label-main').classList.add('active-mode-main');
-    document.getElementById('label-aux').classList.remove('active-mode-aux');
-
+    setActiveTarget('main');
     updateDisplays();
 });
 
@@ -480,10 +486,11 @@ function evaluateFinalResult() {
         feedback.style.color = '#fb923c';
         feedback.textContent = `Aproximación moderada (${resultado}, dif: ${diferencia}). Avanzas 1 metro.`;
     } else {
-        gameState.distMinotauro -= 3;
-        valoracionText = "Demasiado lejos";
+        let minotaurStep = Math.min(12, Math.max(2, Math.floor(diferencia / 15)));
+        gameState.distMinotauro -= minotaurStep;
+        valoracionText = `Demasiado lejos (-${minotaurStep}m)`;
         feedback.style.color = '#f87171';
-        feedback.textContent = `Demasiado lejos (${resultado}, dif: ${diferencia}). ¡El Minotauro avanza 3 metros!`;
+        feedback.textContent = `¡Muy lejos! (${resultado}, dif: ${diferencia}). El Minotauro avanza ${minotaurStep} metros.`;
     }
 
     if (gameState.distSalida < 0) gameState.distSalida = 0;
@@ -523,9 +530,9 @@ function handleTimeOut() {
     gameState.isEvaluating = true;
     const feedback = document.getElementById('result-feedback');
     feedback.style.color = '#f87171';
-    feedback.textContent = "¡Se acabó el tiempo! El Minotauro avanza 4 metros hacia ti.";
+    feedback.textContent = "¡Se acabó el tiempo! El Minotauro avanza 5 metros hacia ti.";
     
-    gameState.distMinotauro -= 4;
+    gameState.distMinotauro -= 5;
     if (gameState.distMinotauro < 0) gameState.distMinotauro = 0;
     updateHUD();
 
