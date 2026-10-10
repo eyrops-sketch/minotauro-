@@ -94,6 +94,14 @@ document.getElementById('box-container-aux').addEventListener('click', () => {
     setActiveTarget('aux');
 });
 
+// BOTÓN DISCRETO PARA VOLVER AL MENÚ PRINCIPAL DESDE EL JUEGO
+document.getElementById('btn-return-menu').addEventListener('click', () => {
+    if (config.timerEnabled) clearInterval(gameState.timerInterval);
+    gameScreen.classList.remove('active');
+    roundSummaryScreen.classList.remove('active');
+    configScreen.classList.add('active');
+});
+
 startGameBtn.addEventListener('click', () => {
     config.numCount = parseInt(document.getElementById('num-count').value);
     config.maxTarget = parseInt(document.getElementById('max-target').value);
@@ -104,9 +112,15 @@ startGameBtn.addEventListener('click', () => {
     config.timerSeconds = parseInt(document.getElementById('timer-seconds').value);
     config.allowUndo = document.getElementById('allow-undo').checked;
 
-    document.getElementById('btn-undo').style.display = config.allowUndo ? 'block' : 'none';
-    if(!config.allowUndo) {
-        document.getElementById('btn-clear').style.gridColumn = 'span 2';
+    const undoBtn = document.getElementById('btn-undo');
+    const clearBtn = document.getElementById('btn-clear');
+    if(undoBtn) undoBtn.style.display = config.allowUndo ? 'block' : 'none';
+    if(clearBtn) {
+        if(!config.allowUndo) {
+            clearBtn.style.gridColumn = 'span 2';
+        } else {
+            clearBtn.style.gridColumn = 'auto';
+        }
     }
 
     coverImage.style.display = 'none';
@@ -559,5 +573,5 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-}
-    
+        }
+            
