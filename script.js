@@ -153,6 +153,13 @@ function startNewGame() {
     gameState.gameOver = false;
     gameState.turnCount = 0;
     
+    // Restaurar el título original por si venimos de la pantalla de fin de juego
+    const title = document.querySelector('#round-summary-screen h2');
+    title.textContent = "Resumen del Desafío";
+    title.style.color = "";
+    title.style.fontSize = "";
+    title.style.textShadow = "";
+    
     const nextBtn = document.getElementById('btn-next-round');
     nextBtn.style.display = 'block';
     nextBtn.textContent = "Siguiente Desafío ➡️";
@@ -195,7 +202,6 @@ function initNewTurnWithImage(forceImage = null) {
         proceedToActualTurn();
     }
 }
-
 function proceedToActualTurn() {
     configScreen.classList.remove('active');
     roundSummaryScreen.classList.remove('active');
@@ -486,10 +492,18 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     evaluateFinalResult();
 });
 
+// NUEVA PANTALLA FINAL CON TEXTO GIGANTE Y VÍDEO SEGURO
 function showGameOverScreen(isVictory) {
     gameState.gameOver = true;
     
     initNewTurnWithImage('min_25.jpg');
+
+    // Modificamos el título grande según victoria o derrota
+    const title = document.querySelector('#round-summary-screen h2');
+    title.textContent = isVictory ? "¡Escapaste del laberinto!" : "¡Te atrapó el minotauro!";
+    title.style.color = isVictory ? '#4ade80' : '#f87171'; // Verde o Rojo
+    title.style.fontSize = '1.8rem';
+    title.style.textShadow = isVictory ? '0 0 15px rgba(74, 222, 128, 0.6)' : '0 0 15px rgba(248, 113, 113, 0.6)';
 
     const nextBtn = document.getElementById('btn-next-round');
     nextBtn.textContent = isVictory ? "Reproducir Victoria 🏆" : "Reproducir Desenlace ☠️";
@@ -498,19 +512,39 @@ function showGameOverScreen(isVictory) {
         const mediaBox = document.querySelector('#round-summary-screen .media-box');
         const videoFile = isVictory ? 'min_ok.mp4' : 'min_fail.mp4';
         
-        mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" autoplay controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
+        // Colocamos el vídeo
+        mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
         nextBtn.style.display = 'none';
 
         const endingVideo = document.getElementById('ending-video');
         
-        endingVideo.onerror = () => {
-             console.log("No se pudo cargar el video final, reiniciando partida.");
-             startNewGame();
+        // Si el vídeo termina bien, hay margen de 1.5 seg antes de reiniciar
+        endingVideo.onended = () => {
+            setTimeout(() => {
+                startNewGame();
+            }, 1500); 
         };
 
-        endingVideo.addEventListener('ended', () => {
-            startNewGame();
-        });
+        // SOLUCIÓN AL SALTO: Si hay error cargando el vídeo, esperamos 4 segundos para que se pueda leer el texto
+        endingVideo.onerror = () => {
+             console.log("No se pudo cargar el video, reiniciando partida en 4 segundos...");
+             setTimeout(() => {
+                 startNewGame();
+             }, 4000);
+        };
+
+        // Forzamos la reproducción
+        let playPromise = endingVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.log("El navegador bloqueó el video:", error);
+                endingVideo.controls = true; // Mostramos controles por si acaso
+                // Y si el usuario no hace nada, reiniciamos a los 8 segundos por seguridad
+                setTimeout(() => {
+                    if(gameState.gameOver) startNewGame();
+                }, 8000);
+            });
+        }
     };
 }
 
@@ -610,5 +644,4 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-}
-
+                                                           }
