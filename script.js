@@ -553,7 +553,7 @@ function showGameOverScreen(isVictory) {
         mediaBox.style.cursor = 'default';
         hintText.style.display = 'none';
         
-        const videoFile = isVictory ? 'min_ok.mp4' : 'min_fail.mp4';
+        const videoFile = isVictory ? '000_min_ok.mp4' : '000_min_fail.mp4';
         
         // Inyectamos el vídeo directamente
         mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" autoplay controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
