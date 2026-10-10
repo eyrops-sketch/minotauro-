@@ -153,12 +153,22 @@ function startNewGame() {
     gameState.gameOver = false;
     gameState.turnCount = 0;
     
-    // Restaurar el título original por si venimos de la pantalla de fin de juego
+    // Resetear el título por si venimos de la pantalla final
     const title = document.querySelector('#round-summary-screen h2');
     title.textContent = "Resumen del Desafío";
     title.style.color = "";
     title.style.fontSize = "";
     title.style.textShadow = "";
+    
+    // Ocultar texto de ayuda de vídeo si existe
+    const hintText = document.getElementById('video-hint');
+    if (hintText) hintText.style.display = 'none';
+
+    // Clonamos el contenedor de imagen para limpiar cualquier evento "click" que haya quedado del vídeo
+    const oldMediaBox = document.querySelector('#round-summary-screen .media-box');
+    const newMediaBox = oldMediaBox.cloneNode(true);
+    oldMediaBox.parentNode.replaceChild(newMediaBox, oldMediaBox);
+    newMediaBox.style.cursor = 'default';
     
     const nextBtn = document.getElementById('btn-next-round');
     nextBtn.style.display = 'block';
@@ -202,6 +212,7 @@ function initNewTurnWithImage(forceImage = null) {
         proceedToActualTurn();
     }
 }
+
 function proceedToActualTurn() {
     configScreen.classList.remove('active');
     roundSummaryScreen.classList.remove('active');
@@ -492,61 +503,68 @@ document.getElementById('btn-submit').addEventListener('click', () => {
     evaluateFinalResult();
 });
 
-// NUEVA PANTALLA FINAL CON TEXTO GIGANTE Y VÍDEO SEGURO
+
+// === NUEVA LÓGICA DE FIN DE JUEGO (CLIC EN IMAGEN Y TEXTO GIGANTE) ===
 function showGameOverScreen(isVictory) {
     gameState.gameOver = true;
     
+    // 1. Mostrar la imagen base del final (min_25.jpg)
     initNewTurnWithImage('min_25.jpg');
 
-    // Modificamos el título grande según victoria o derrota
+    // 2. Modificar el título de forma épica
     const title = document.querySelector('#round-summary-screen h2');
     title.textContent = isVictory ? "¡Escapaste del laberinto!" : "¡Te atrapó el minotauro!";
-    title.style.color = isVictory ? '#4ade80' : '#f87171'; // Verde o Rojo
+    title.style.color = isVictory ? '#4ade80' : '#f87171'; // Verde para victoria, Rojo para derrota
     title.style.fontSize = '1.8rem';
     title.style.textShadow = isVictory ? '0 0 15px rgba(74, 222, 128, 0.6)' : '0 0 15px rgba(248, 113, 113, 0.6)';
 
+    // 3. El botón principal pasa a ser "Reiniciar" y funciona siempre
     const nextBtn = document.getElementById('btn-next-round');
-    nextBtn.textContent = isVictory ? "Reproducir Victoria 🏆" : "Reproducir Desenlace ☠️";
-    
+    nextBtn.textContent = "🔄 Reiniciar Desafío";
     nextBtn.onclick = () => {
-        const mediaBox = document.querySelector('#round-summary-screen .media-box');
+        startNewGame();
+    };
+
+    // 4. Preparar la imagen para que sea clicable
+    const mediaBox = document.querySelector('#round-summary-screen .media-box');
+    mediaBox.style.cursor = 'pointer';
+
+    // 5. Insertar el texto de aviso "Pulsa la imagen" si no existe
+    let hintText = document.getElementById('video-hint');
+    if (!hintText) {
+        hintText = document.createElement('p');
+        hintText.id = 'video-hint';
+        hintText.style.textAlign = 'center';
+        hintText.style.color = '#fb923c';
+        hintText.style.fontWeight = 'bold';
+        hintText.style.marginTop = '-10px';
+        hintText.style.marginBottom = '15px';
+        hintText.style.fontSize = '0.9rem';
+        hintText.textContent = '👆 Pulsa la imagen para ver el desenlace 👆';
+        // Lo colocamos justo debajo de la imagen
+        mediaBox.parentNode.insertBefore(hintText, mediaBox.nextSibling);
+    } else {
+        hintText.style.display = 'block';
+    }
+
+    // 6. Al pulsar la imagen, carga el vídeo
+    mediaBox.addEventListener('click', function playVideoHandler() {
+        // Quitamos el puntero de clic y escondemos el texto de ayuda
+        mediaBox.style.cursor = 'default';
+        hintText.style.display = 'none';
+        
         const videoFile = isVictory ? 'min_ok.mp4' : 'min_fail.mp4';
         
-        // Colocamos el vídeo
-        mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
-        nextBtn.style.display = 'none';
-
-        const endingVideo = document.getElementById('ending-video');
+        // Inyectamos el vídeo directamente
+        mediaBox.innerHTML = `<video id="ending-video" src="multimedia/${videoFile}" autoplay controls style="width: 100%; height: 100%; object-fit: contain; background: #000;"></video>`;
         
-        // Si el vídeo termina bien, hay margen de 1.5 seg antes de reiniciar
-        endingVideo.onended = () => {
-            setTimeout(() => {
-                startNewGame();
-            }, 1500); 
-        };
-
-        // SOLUCIÓN AL SALTO: Si hay error cargando el vídeo, esperamos 4 segundos para que se pueda leer el texto
-        endingVideo.onerror = () => {
-             console.log("No se pudo cargar el video, reiniciando partida en 4 segundos...");
-             setTimeout(() => {
-                 startNewGame();
-             }, 4000);
-        };
-
-        // Forzamos la reproducción
-        let playPromise = endingVideo.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("El navegador bloqueó el video:", error);
-                endingVideo.controls = true; // Mostramos controles por si acaso
-                // Y si el usuario no hace nada, reiniciamos a los 8 segundos por seguridad
-                setTimeout(() => {
-                    if(gameState.gameOver) startNewGame();
-                }, 8000);
-            });
-        }
-    };
+        // Evitar que el clic se quede registrado
+        mediaBox.removeEventListener('click', playVideoHandler);
+    });
 }
+// ====================================================================
+
+// ====================================================================
 
 function evaluateFinalResult() {
     if (gameState.isEvaluating || gameState.mainValue === null || gameState.gameOver) return;
@@ -644,4 +662,6 @@ function handleTimeOut() {
 function updateHUD() {
     document.getElementById('dist-salida').textContent = gameState.distSalida;
     document.getElementById('dist-minotauro').textContent = gameState.distMinotauro;
-                                                           }
+}
+
+
