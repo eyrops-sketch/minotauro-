@@ -42,7 +42,6 @@ h2 {
     margin-bottom: 1rem;
 }
 
-/* TÍTULO RESUMEN DEL DESAFÍO EN NARANJA LLAMATIVO */
 #round-summary-screen h2 {
     color: #fb923c !important;
     text-shadow: 0 0 12px rgba(251, 146, 60, 0.5) !important;
@@ -51,7 +50,6 @@ h2 {
     margin-bottom: 15px;
 }
 
-/* CHECKBOXES CON ACENTO NARANJA */
 input[type="checkbox"] {
     accent-color: #f97316;
     width: 18px;
@@ -59,7 +57,6 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
-/* MARCOS Y FRAMES MULTIMEDIA */
 .media-box {
     background-color: #000000;
     border-radius: 10px;
@@ -90,7 +87,6 @@ input[type="checkbox"] {
     box-shadow: 0 0 20px rgba(251, 146, 60, 0.25), inset 0 0 10px rgba(0,0,0,0.8);
 }
 
-/* TARJETA DE RESUMEN */
 .summary-box {
     background: linear-gradient(145deg, #181924, #101118);
     border: 2px solid #52525b;
@@ -121,65 +117,81 @@ input[type="checkbox"] {
 #summary-dist-salida { color: #4ade80; font-weight: 900; font-size: 1.1rem; }
 #summary-dist-minotauro { color: #f87171; font-weight: 900; font-size: 1.1rem; }
 
-/* HUD SUPERIOR MEJORADO CON MARCO DOBLE Y SOMBRA */
+/* HUD SUPERIOR COMPACTO Y ELEGANTE */
 .game-header-box {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
     background: linear-gradient(135deg, #1c1e29, #12131c);
     border: 2px solid #f97316;
     border-radius: 10px;
-    padding: 12px 8px;
-    margin-bottom: 1.2rem;
+    padding: 8px 12px;
+    margin-bottom: 1rem;
     font-size: 0.85rem;
     font-weight: bold;
-    box-shadow: 0 5px 15px rgba(249, 115, 22, 0.2), inset 0 0 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
 }
 
 .stat-item {
-    background: rgba(0, 0, 0, 0.5);
-    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #474752;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
 }
 
-.stat-item.exit { color: #4ade80; border-color: rgba(74, 222, 128, 0.4); }
-.stat-item.minotauro { color: #f87171; border-color: rgba(248, 113, 113, 0.4); }
-.stat-item.timer { color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); }
+.stat-item.exit { color: #4ade80; border-color: rgba(74, 222, 128, 0.3); }
+.stat-item.minotauro { color: #f87171; border-color: rgba(248, 113, 113, 0.3); }
+.stat-item.timer { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+
+/* BOTÓN DISCRETO DE VOLVER AL MENÚ */
+.btn-icon-discreet {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #52525b;
+    color: #e4e4e7;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: none;
+}
+
+.btn-icon-discreet:hover {
+    background: #f97316;
+    border-color: #f97316;
+    color: #fff;
+    transform: none;
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+}
 
 .target-container {
     text-align: center;
     background: linear-gradient(145deg, #1c1e29, #13141b);
-    padding: 12px;
+    padding: 10px;
     border-radius: 10px;
     border: 2px solid #52525b;
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
-.target-container span { color: #d4d4d8; font-size: 0.9rem; }
+.target-container span { color: #d4d4d8; font-size: 0.85rem; }
 .target-container h2 {
-    margin: 5px 0 0 0;
-    font-size: 2.5rem;
+    margin: 3px 0 0 0;
+    font-size: 2.2rem;
     color: #4ade80;
     letter-spacing: 3px;
-    text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
 }
 
 .mode-selector {
     display: flex;
     justify-content: space-around;
     background: #181924;
-    padding: 10px;
+    padding: 8px;
     border-radius: 8px;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
     border: 2px solid #474752;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
 }
 
 .mode-selector label {
@@ -192,7 +204,6 @@ input[type="checkbox"] {
 .active-mode-main { color: #fb923c !important; }
 .active-mode-aux { color: #38bdf8 !important; }
 
-/* CAJAS CLICKEABLES CON MARCO Y RELIEVE */
 .clickable-box {
     cursor: pointer;
     transition: all 0.2s ease;
@@ -205,13 +216,13 @@ input[type="checkbox"] {
 
 .expression-container {
     background: #090a0f;
-    min-height: 44px;
+    min-height: 40px;
     border-radius: 8px;
     display: flex;
     align-items: center;
-    padding: 8px 14px;
-    margin-bottom: 0.7rem;
-    font-size: 1.05rem;
+    padding: 6px 12px;
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
     word-break: break-all;
     font-weight: bold;
     box-shadow: inset 0 3px 6px rgba(0,0,0,0.8);
@@ -221,79 +232,73 @@ input[type="checkbox"] {
 .aux-box { border: 2px dashed #38bdf8; color: #e0f2fe; }
 
 .box-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: bold;
-    margin-right: 10px;
+    margin-right: 8px;
     color: #a1a1aa;
     text-transform: uppercase;
 }
 
-.aux-actions { margin-bottom: 0.8rem; }
+.aux-actions { margin-bottom: 0.6rem; }
 
-/* BOTONES CON SOMBREADO PROFUNDO Y RELIEVE */
 button {
     cursor: pointer;
     font-family: inherit;
     font-weight: bold;
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px;
     transition: all 0.2s ease;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 button:hover {
     filter: brightness(1.2);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.25);
-}
-
-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+    transform: translateY(-1px);
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #f97316, #c2410c);
     color: #ffffff;
     width: 100%;
-    font-size: 1.05rem;
+    font-size: 1rem;
     margin-top: 0.8rem;
     border: 1px solid #fb923c;
-    box-shadow: 0 6px 18px rgba(249, 115, 22, 0.4), inset 0 1px 2px rgba(255,255,255,0.3);
 }
 
 .btn-info {
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     color: #ffffff;
     width: 100%;
-    font-size: 0.85rem;
-    padding: 9px;
+    font-size: 0.8rem;
+    padding: 8px;
     border: 1px solid #60a5fa;
 }
 
 .config-group {
-    margin-bottom: 1.1rem;
+    margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 }
 
 .config-group label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #e4e4e7;
+    flex: 1;
 }
 
 .config-group select, .config-group input[type="number"] {
     background: #181924;
     color: #ffffff;
     border: 2px solid #52525b;
-    padding: 6px;
+    padding: 6px 8px;
     border-radius: 6px;
     font-weight: bold;
-    width: 90px;
+    width: 130px;
     text-align: center;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    font-size: 0.85rem;
 }
 
 .numbers-grid, .operators-grid, .actions-grid {
@@ -304,15 +309,14 @@ button:active {
 
 .numbers-grid { grid-template-columns: repeat(3, 1fr); }
 .operators-grid { grid-template-columns: repeat(4, 1fr); }
-.actions-grid { grid-template-columns: repeat(3, 1fr); }
+.actions-grid { grid-template-columns: repeat(2, 1fr); } /* 2 columnas simétricas para Deshacer y Borrar Todo */
 
 .btn-num {
     background: linear-gradient(145deg, #3f3f46, #27272a);
     color: #ffffff;
     border: 1px solid #71717a;
-    font-size: 1.25rem;
-    font-weight: bold;
-    padding: 12px;
+    font-size: 1.15rem;
+    padding: 10px;
 }
 
 .btn-num:disabled {
@@ -325,9 +329,9 @@ button:active {
 .btn-op {
     background: linear-gradient(145deg, #27272a, #181924);
     border: 2px solid #52525b;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 900;
-    padding: 8px 0;
+    padding: 6px 0;
 }
 
 .btn-plus { color: #4ade80; border-color: rgba(74, 222, 128, 0.4); }
@@ -338,7 +342,7 @@ button:active {
 .btn-secondary {
     background: linear-gradient(145deg, #3f3f46, #27272a);
     color: #f4f4f5;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: bold;
     border: 1px solid #71717a;
 }
@@ -346,18 +350,17 @@ button:active {
 .btn-success {
     background: linear-gradient(135deg, #16a34a, #15803d);
     color: #ffffff;
-    grid-column: span 2;
+    width: 100%;
     font-size: 0.95rem;
     border: 1px solid #4ade80;
-    box-shadow: 0 6px 18px rgba(22, 163, 74, 0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+    box-shadow: 0 6px 15px rgba(22, 163, 74, 0.3);
 }
 
 .feedback {
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: bold;
-    margin-top: 10px;
-    min-height: 22px;
+    margin-top: 8px;
+    min-height: 20px;
     text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
-
