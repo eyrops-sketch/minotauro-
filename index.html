@@ -20,40 +20,40 @@
             <h2>Configuración de la Partida</h2>
             
             <div class="config-group">
-                <label for="num-count">Cantidad de números base:</label>
+                <label for="num-count">Números base:</label>
                 <select id="num-count">
-                    <option value="4">4 números (Fácil)</option>
-                    <option value="6" selected>6 números (Clásico)</option>
-                    <option value="8">8 números (Difícil)</option>
+                    <option value="4">4 números</option>
+                    <option value="6" selected>6 números</option>
+                    <option value="8">8 números</option>
                 </select>
             </div>
 
             <div class="config-group">
-                <label for="max-target">Rango del número objetivo:</label>
+                <label for="max-target">Rango objetivo:</label>
                 <select id="max-target">
-                    <option value="100">Bajo (1 - 100)</option>
-                    <option value="500">Medio (1 - 500)</option>
-                    <option value="999" selected>Clásico (100 - 999)</option>
+                    <option value="100">Bajo (1-100)</option>
+                    <option value="500">Medio (1-500)</option>
+                    <option value="999" selected>Clásico (100-999)</option>
                 </select>
             </div>
 
             <div class="config-group">
-                <label for="init-dist-salida">Distancia inicial a la Salida (m):</label>
+                <label for="init-dist-salida">Distancia Salida (m):</label>
                 <input type="number" id="init-dist-salida" value="50" min="10" max="200">
             </div>
 
             <div class="config-group">
-                <label for="init-dist-minotauro">Distancia inicial del Minotauro (m):</label>
+                <label for="init-dist-minotauro">Distancia Minotauro (m):</label>
                 <input type="number" id="init-dist-minotauro" value="20" min="5" max="100">
             </div>
 
             <div class="config-group">
-                <label for="solvable-target">Forzar número con solución exacta:</label>
+                <label for="solvable-target">Forzar solución exacta:</label>
                 <input type="checkbox" id="solvable-target" checked>
             </div>
 
             <div class="config-group">
-                <label for="timer-enabled">¿Activar cronómetro?</label>
+                <label for="timer-enabled">Activar cronómetro:</label>
                 <input type="checkbox" id="timer-enabled" checked>
             </div>
 
@@ -63,7 +63,7 @@
             </div>
 
             <div class="config-group">
-                <label for="allow-undo">Permitir deshacer operación:</label>
+                <label for="allow-undo">Permitir deshacer:</label>
                 <input type="checkbox" id="allow-undo" checked>
             </div>
 
@@ -93,9 +93,10 @@
         <!-- PANTALLA DE JUEGO -->
         <div id="game-screen" class="screen">
             <header class="game-header-box">
-                <div class="stat-item exit">🏁 Salida: <span id="dist-salida">50</span>m</div>
-                <div class="stat-item minotaur">🐃 Minotauro: <span id="dist-minotauro">20</span>m</div>
+                <div class="stat-item exit">🏁 <span id="dist-salida">50</span>m</div>
+                <div class="stat-item minotaur">🐃 <span id="dist-minotauro">20</span>m</div>
                 <div class="stat-item timer" id="timer-display">⏳ <span id="time-left">45</span>s</div>
+                <button id="btn-return-menu" class="btn-icon-discreet" title="Volver al Menú">🏠</button>
             </header>
 
             <div class="cifras-board">
@@ -138,11 +139,13 @@
                     <button class="btn-op btn-div" data-op="/">÷</button>
                 </div>
 
+                <!-- REJILLA DE ACCIONES SIMÉTRICA Y SIN HUECOS -->
                 <div class="actions-grid">
                     <button id="btn-undo" class="btn-secondary">Deshacer</button>
                     <button id="btn-clear" class="btn-secondary">Borrar Todo</button>
-                    <button id="btn-submit" class="btn-success">¡Comprobar Cifra!</button>
                 </div>
+                
+                <button id="btn-submit" class="btn-success">¡Comprobar Cifra!</button>
                 
                 <div id="result-feedback" class="feedback"></div>
 
