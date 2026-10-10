@@ -9,7 +9,7 @@
 <body>
 
     <div class="game-container">
-        <!-- PANTALLA DE CONFIGURACIÓN Y PORTADA (Tamaño original) -->
+        <!-- PANTALLA DE CONFIGURACIÓN Y PORTADA -->
         <div id="config-screen" class="screen active">
             <div id="media-container" class="media-box menu-media">
                 <img id="cover-image" src="multimedia/00_portada.jpg" alt="Portada Minotauro">
@@ -38,6 +38,16 @@
             </div>
 
             <div class="config-group">
+                <label for="init-dist-salida">Distancia inicial a la Salida (m):</label>
+                <input type="number" id="init-dist-salida" value="50" min="10" max="200">
+            </div>
+
+            <div class="config-group">
+                <label for="init-dist-minotauro">Distancia inicial del Minotauro (m):</label>
+                <input type="number" id="init-dist-minotauro" value="20" min="5" max="100">
+            </div>
+
+            <div class="config-group">
                 <label for="solvable-target">Forzar número con solución exacta:</label>
                 <input type="checkbox" id="solvable-target" checked>
             </div>
@@ -60,7 +70,7 @@
             <button id="start-game-btn" class="btn-primary">Entrar al Laberinto</button>
         </div>
 
-        <!-- PANTALLA DE RESUMEN DE RONDA (Contenedor más alto para imágenes verticales) -->
+        <!-- PANTALLA DE RESUMEN DE RONDA -->
         <div id="round-summary-screen" class="screen">
             <h2>Resumen del Desafío</h2>
             
@@ -72,7 +82,7 @@
                 <p><strong>Turnos empleados:</strong> <span id="summary-turns">1</span></p>
                 <p><strong>Diferencia con la cifra exacta:</strong> <span id="summary-diff">0</span></p>
                 <p><strong>Valoración:</strong> <span id="summary-val">¡Perfecto!</span></p>
-                <hr style="border-color: #3f3f46; margin: 10px 0;">
+                <hr class="summary-divider">
                 <p>🏁 <strong>Distancia Salida:</strong> <span id="summary-dist-salida">50</span>m</p>
                 <p>🐃 <strong>Distancia Minotauro:</strong> <span id="summary-dist-minotauro">20</span>m</p>
             </div>
@@ -103,12 +113,12 @@
                     </label>
                 </div>
 
-                <div class="expression-container main-box">
+                <div id="box-container-main" class="expression-container main-box clickable-box">
                     <span class="box-label">Principal:</span>
                     <div id="current-expression">Selecciona ficha o número...</div>
                 </div>
 
-                <div class="expression-container aux-box">
+                <div id="box-container-aux" class="expression-container aux-box clickable-box">
                     <span class="box-label">Auxiliar:</span>
                     <div id="aux-expression">Vacío (usa el selector para operar aquí)</div>
                 </div>
